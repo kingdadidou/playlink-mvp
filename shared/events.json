@@ -1,0 +1,53 @@
+[
+  {
+    "id": 1,
+    "sport": "Running",
+    "title": "Running 10 km du dimanche",
+    "date": "2026-10-04",
+    "time": "10:00",
+    "location": "Parc de Sceaux",
+    "city": "Sceaux",
+    "lat": 48.7745,
+    "lng": 2.2988,
+    "level": "Intermédiaire",
+    "maxParticipants": 12,
+    "participants": 7,
+    "joinMode": "instant",
+    "organizer": "Thomas",
+    "description": "Sortie running conviviale, allure autour de 5:30/km."
+  },
+  {
+    "id": 2,
+    "sport": "Football",
+    "title": "Five 5v5 après le travail",
+    "date": "2026-10-05",
+    "time": "19:30",
+    "location": "UrbanSoccer",
+    "city": "Palaiseau",
+    "lat": 48.7148,
+    "lng": 2.2452,
+    "level": "Tous niveaux",
+    "maxParticipants": 10,
+    "participants": 8,
+    "joinMode": "approval",
+    "organizer": "Lucas",
+    "description": "Match amical. Validation par l'organisateur avant participation."
+  },
+  {
+    "id": 3,
+    "sport": "Tennis",
+    "title": "Tennis simple - niveau loisir",
+    "date": "2026-10-06",
+    "time": "18:00",
+    "location": "Courts municipaux",
+    "city": "Massy",
+    "lat": 48.7309,
+    "lng": 2.2713,
+    "level": "Loisir",
+    "maxParticipants": 2,
+    "participants": 1,
+    "joinMode": "instant",
+    "organizer": "Emma",
+    "description": "Recherche un partenaire pour une heure de tennis."
+  }
+]

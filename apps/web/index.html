@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PlayLink — Trouve ton prochain sport</title>
+  <link rel="stylesheet" href="leaflet.css"/>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">P</div>
+      <div>
+        <strong>PlayLink</strong>
+        <span>Du sport, près de chez toi.</span>
+      </div>
+    </div>
+    <nav>
+      <button class="ghost" id="toggleView" type="button" aria-pressed="false">Vue liste</button>
+      <button class="primary" id="openCreate">+ Créer un événement</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">SPORT · LOCAL · SOCIAL</p>
+        <h1>Rejoins une activité sportive en quelques secondes.</h1>
+        <p class="lead">Course, foot, five, tennis… découvre les événements autour de toi ou crée le tien.</p>
+      </div>
+      <div class="stat-card">
+        <span>Événements visibles</span>
+        <strong id="eventCount">0</strong>
+        <small>dans la démo</small>
+      </div>
+    </section>
+
+    <section class="filters">
+      <label class="filter-field"><span>Rechercher</span><input id="search" type="search" placeholder="Sport, événement ou ville..." /></label>
+      <label class="filter-field"><span>Sport</span><select id="sportFilter">
+        <option value="">Tous les sports</option>
+        <option>Running</option>
+        <option>Football</option>
+        <option>Tennis</option>
+        <option>Basket</option>
+        <option>Autre</option>
+      </select></label>
+      <label class="filter-field"><span>Inscription</span><select id="modeFilter">
+        <option value="">Tous les modes</option>
+        <option value="instant">Inscription immédiate</option>
+        <option value="approval">Validation organisateur</option>
+      </select></label>
+      <button class="ghost" id="notifyBtn">🔔 Alertes autour de moi</button>
+    </section>
+
+    <section id="mapView" class="content-grid">
+      <div class="map-wrap" id="mapWrap">
+        <div id="fallbackMap" class="fallback-map" role="group" aria-label="Carte simplifiée des événements sportifs">
+          <div class="fallback-grid" aria-hidden="true"></div>
+          <div class="fallback-heading"><strong>Carte des événements</strong><span>Nord ↑</span></div>
+          <div id="fallbackPins" class="fallback-pins"></div>
+          <div id="fallbackPopup" class="fallback-popup hidden"></div>
+          <span class="fallback-caption">Carte simplifiée · positions approximatives des villes</span>
+        </div>
+        <div id="map" role="application" aria-label="Carte des événements sportifs"></div>
+        <div id="mapNotice" class="map-notice hidden" role="status"></div>
+      </div>
+      <aside>
+        <div class="section-title">
+          <h2>Événements à venir</h2>
+          <span id="resultCount"></span>
+        </div>
+        <div id="eventList" class="event-list"></div>
+      </aside>
+    </section>
+
+    <section id="listView" class="list-only hidden">
+      <div class="section-title">
+        <h2>Tous les événements</h2>
+      </div>
+      <div id="eventGrid" class="event-grid"></div>
+    </section>
+  </main>
+
+  <dialog id="createDialog">
+    <form method="dialog" id="createForm">
+      <div class="dialog-head">
+        <h2>Créer un événement</h2>
+        <button type="button" data-close="createDialog" class="icon" aria-label="Fermer">✕</button>
+      </div>
+
+      <label>Titre<input name="title" required placeholder="Ex. Five 5v5 vendredi soir" /></label>
+      <label>Sport
+        <select name="sport" required>
+          <option>Running</option><option>Football</option><option>Tennis</option><option>Basket</option><option>Autre</option>
+        </select>
+      </label>
+      <div class="two-cols">
+        <label>Date<input name="date" type="date" required /></label>
+        <label>Heure<input name="time" type="time" required /></label>
+      </div>
+      <label>Lieu<input name="location" required placeholder="Ex. Parc de Sceaux" /></label>
+      <label>Ville
+        <select name="city" required>
+          <option value="">Choisir une ville</option>
+          <option>Sceaux</option><option>Palaiseau</option><option>Massy</option><option>Antony</option><option>Paris</option><option>Versailles</option><option>Lyon</option><option>Marseille</option><option>Lille</option><option>Bordeaux</option><option>Toulouse</option><option>Nantes</option><option>Rennes</option><option>Strasbourg</option>
+        </select>
+        <small class="field-hint">Villes disponibles dans cette démo. Le repère sera placé au centre de la ville.</small>
+      </label>
+      <div class="two-cols">
+        <label>Niveau
+          <select name="level">
+            <option>Tous niveaux</option><option>Débutant</option><option>Loisir</option><option>Intermédiaire</option><option>Avancé</option>
+          </select>
+        </label>
+        <label>Nombre de places<input name="maxParticipants" type="number" min="2" value="10" /></label>
+      </div>
+      <label>Mode d'inscription
+        <select name="joinMode">
+          <option value="instant">Inscription immédiate</option>
+          <option value="approval">Validation par l'organisateur</option>
+        </select>
+      </label>
+      <label>Description<textarea name="description" rows="3" placeholder="Donne envie aux autres de participer…"></textarea></label>
+      <button class="primary full" type="submit">Publier l'événement</button>
+    </form>
+  </dialog>
+
+  <dialog id="notifyDialog">
+    <form method="dialog">
+      <div class="dialog-head">
+        <h2>Alertes de proximité</h2>
+        <button type="button" data-close="notifyDialog" class="icon" aria-label="Fermer">✕</button>
+      </div>
+      <p class="muted">Prototype : les préférences sont sauvegardées dans ton navigateur.</p>
+      <label>Ville ou zone<input id="notifyCity" placeholder="Ex. Palaiseau" /></label>
+      <label>Rayon
+        <select id="notifyRadius">
+          <option>5 km</option><option selected>10 km</option><option>25 km</option><option>50 km</option>
+        </select>
+      </label>
+      <label>Sports favoris<input id="notifySports" placeholder="Running, Football, Tennis" /></label>
+      <label class="check"><input id="pushEnabled" type="checkbox" checked /> Notifications push</label>
+      <label class="check"><input id="emailEnabled" type="checkbox" checked /> Notifications e-mail</label>
+      <button id="saveNotifications" class="primary full" type="submit">Enregistrer mes alertes</button>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <script src="leaflet.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
