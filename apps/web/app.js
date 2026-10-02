@@ -120,7 +120,7 @@ function eventCard(event){
     </div>
     <div class="progress"><span style="width:${percent}%"></span></div>
     <div class="card-footer">
-      <small><strong>${Math.max(0, event.maxParticipants - event.participants)} places</strong> disponibles</small>
+      <small><strong>${Math.max(0, event.maxParticipants - event.participants)} place${event.maxParticipants - event.participants > 1 ? 's' : ''}</strong> disponible${event.maxParticipants - event.participants > 1 ? 's' : ''}</small>
       <div class="card-actions"><button class="locate" type="button" data-locate="${Number(event.id)}">Voir sur la carte</button><button class="join" type="button" data-join="${Number(event.id)}" ${joined || pending || full ? "disabled" : ""}>${action}</button></div>
     </div>
   </article>`;
