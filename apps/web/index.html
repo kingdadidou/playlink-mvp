@@ -6,14 +6,15 @@
   <title>PlayLink — Trouve ton prochain sport</title>
   <link rel="stylesheet" href="leaflet.css"/>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="identity.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="logo">P</div>
+      <div class="logo" aria-hidden="true">p<span>↗</span></div>
       <div>
         <strong>PlayLink</strong>
-        <span>Du sport, près de chez toi.</span>
+        <span>Le sport se partage.</span>
       </div>
     </div>
     <nav>
@@ -25,14 +26,14 @@
   <main>
     <section class="hero">
       <div>
-        <p class="eyebrow">SPORT · LOCAL · SOCIAL</p>
-        <h1>Rejoins une activité sportive en quelques secondes.</h1>
-        <p class="lead">Course, foot, five, tennis… découvre les événements autour de toi ou crée le tien.</p>
+        <p class="eyebrow">ON SE RETROUVE DEHORS ?</p>
+        <h1>Un terrain.<br>Des gens. <em>Du jeu.</em></h1>
+        <p class="lead">Un partenaire de tennis, une équipe à compléter,<br class="desktop-break"> une sortie pour courir. Trouve ta prochaine session.</p>
       </div>
       <div class="stat-card">
-        <span>Événements visibles</span>
+        <span>Le prochain rendez-vous<br>est peut-être à côté.</span>
         <strong id="eventCount">0</strong>
-        <small>dans la démo</small>
+        <small>sessions à découvrir</small>
       </div>
     </section>
 
@@ -51,7 +52,7 @@
         <option value="instant">Inscription immédiate</option>
         <option value="approval">Validation organisateur</option>
       </select></label>
-      <button class="ghost" id="notifyBtn">🔔 Alertes autour de moi</button>
+      <button class="ghost" id="notifyBtn">Mes alertes <span aria-hidden="true">↗</span></button>
     </section>
 
     <section id="mapView" class="content-grid">
@@ -68,7 +69,7 @@
       </div>
       <aside>
         <div class="section-title">
-          <h2>Événements à venir</h2>
+          <h2>On joue quand ?</h2>
           <span id="resultCount"></span>
         </div>
         <div id="eventList" class="event-list"></div>
@@ -81,6 +82,7 @@
       </div>
       <div id="eventGrid" class="event-grid"></div>
     </section>
+    <footer class="site-footer"><span>PlayLink · Le sport commence à plusieurs.</span><span>Version de démonstration</span></footer>
   </main>
 
   <dialog id="createDialog">

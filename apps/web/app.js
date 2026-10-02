@@ -106,21 +106,21 @@ function eventCard(event){
   const full = event.participants >= event.maxParticipants;
   const action = joined ? "Inscrit" : pending ? "Demande envoyée" : full ? "Complet" : event.joinMode === "instant" ? "Rejoindre" : "Demander une place";
   return `
-  <article class="card" data-event-id="${Number(event.id)}">
+  <article class="card" data-sport="${escapeHtml(event.sport)}" data-event-id="${Number(event.id)}">
     <div class="card-top">
       <span class="sport">${escapeHtml(event.sport)}</span>
       <span class="mode">${modeLabel(event.joinMode)}</span>
     </div>
     <h3>${escapeHtml(event.title)}</h3>
     <div class="meta">
-      <span>📅 ${escapeHtml(event.date)} · ${escapeHtml(event.time)}</span>
-      <span>📍 ${escapeHtml(event.city)}</span>
-      <span>🎯 ${escapeHtml(event.level)}</span>
-      <span>👤 ${escapeHtml(event.organizer)}</span>
+      <span class="event-date">${escapeHtml(new Date(event.date + 'T12:00:00').toLocaleDateString('fr-FR', {weekday:'short',day:'numeric',month:'short'}))} · ${escapeHtml(event.time)}</span>
+      <span>${escapeHtml(event.city)}</span>
+      <span>${escapeHtml(event.level)}</span>
+      <span>Avec ${escapeHtml(event.organizer)}</span>
     </div>
     <div class="progress"><span style="width:${percent}%"></span></div>
     <div class="card-footer">
-      <small>${event.participants}/${event.maxParticipants} participants</small>
+      <small><strong>${Math.max(0, event.maxParticipants - event.participants)} places</strong> disponibles</small>
       <div class="card-actions"><button class="locate" type="button" data-locate="${Number(event.id)}">Voir sur la carte</button><button class="join" type="button" data-join="${Number(event.id)}" ${joined || pending || full ? "disabled" : ""}>${action}</button></div>
     </div>
   </article>`;
