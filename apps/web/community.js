@@ -70,6 +70,13 @@
     $('notificationsButton').textContent=unread?`Notifications (${unread})`:'Notifications';
   }
   function openAuth(){ $('authDialog').showModal(); }
+  function confirmAction(action){
+    const descriptions={cancel_event:'Annuler cette session ? Les participants en seront informés.',moderate_event:'Retirer cet événement de la carte ?',block:'Bloquer ce joueur ? Vos participations futures aux sessions de l’autre seront annulées.',remove_participant:'Retirer ce participant ? Sa place sera proposée à la liste d’attente.'};
+    const dialog=$('utilityDialog');
+    $('utilityContent').innerHTML=`<h2>Confirmer</h2><p>${esc(descriptions[action])}</p><form method="dialog" class="actions"><button class="ghost" value="cancel">Retour</button><button class="primary" value="confirm">Confirmer</button></form>`;
+    dialog.returnValue='';
+    return new Promise(resolve=>{dialog.addEventListener('close',()=>resolve(dialog.returnValue==='confirm'),{once:true});dialog.showModal();});
+  }
   function navigate(next){
     view=next;
     document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-current',b.dataset.view===view?'page':'false');});
@@ -175,7 +182,7 @@
       if(a==='report_event'||a==='report_user'){report(a==='report_event'?'event':'user',b.dataset.id||b.dataset.user);return;}
       if(a==='group_session'){prepareCreate(b.dataset.id);$('createDialog').showModal();return;}
       if(a==='new_group'){$('utilityContent').innerHTML='<h2>Créer un groupe</h2><form id="groupForm"><label>Nom<input name="name" required minlength="2" maxlength="80"></label><label>Sport<select name="sport"><option>Running</option><option>Football</option><option>Tennis</option><option>Basket</option><option>Multisport</option></select></label><label>Description<textarea name="description" maxlength="1000"></textarea></label><button class="primary">Créer le groupe</button></form>';$('utilityDialog').showModal();return;}
-      if(['cancel_event','moderate_event','block','remove_participant'].includes(a)&&!confirm('Confirmer cette action ?'))return;
+      if(['cancel_event','moderate_event','block','remove_participant'].includes(a)&&!await confirmAction(a))return;
       const result=await act(a,{user_id:b.dataset.user,event_id:b.dataset.event,group_id:b.dataset.group,id:b.dataset.id});
       if(result)showToast('Modification enregistrée.');
     }catch(error){showToast(error.message);}
@@ -212,6 +219,6 @@
   };
   window.PlayLink={createEvent,ready,openDetail};
   renderAccount();
-  if(ready){events=[];render();load().catch(error=>showToast(error.message));}
+  if(ready){events=[];render();load().catch(error=>{$('connectionNotice').textContent='Connexion à PlayLink indisponible : '+error.message;showToast(error.message);});}
   setInterval(()=>{if(ready&&uid()&&!document.hidden&&!busy&&!['TEXTAREA','INPUT','SELECT'].includes(document.activeElement?.tagName))load().catch(()=>{});},30000);
 })();
