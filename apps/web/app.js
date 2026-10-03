@@ -82,12 +82,12 @@ function renderFallback(list){
     const x = Math.max(9, Math.min(88, 50 + (Number(event.lng) - centerLng) / lngSpan * 72));
     const y = Math.max(20, Math.min(78, 50 - (Number(event.lat) - centerLat) / latSpan * 55));
     const offset = index % 3 * 2;
-    return `<button type="button" class="fallback-pin" style="left:${x + offset}%;top:${y}%" data-fallback-id="${Number(event.id)}" aria-label="Voir ${escapeHtml(event.title)} à ${escapeHtml(event.city)}"><span class="fallback-dot">●</span><span class="fallback-city">${escapeHtml(event.city)}</span></button>`;
+    return `<button type="button" class="fallback-pin" style="left:${x + offset}%;top:${y}%" data-fallback-id="${escapeHtml(event.id)}" aria-label="Voir ${escapeHtml(event.title)} à ${escapeHtml(event.city)}"><span class="fallback-dot">●</span><span class="fallback-city">${escapeHtml(event.city)}</span></button>`;
   }).join("");
 }
 
 function showFallbackEvent(id){
-  const event = events.find(item => item.id === id);
+  const event = events.find(item => String(item.id) === String(id));
   if (!event) return;
   const popup = $("fallbackPopup");
   popup.innerHTML = `<strong>${escapeHtml(event.title)}</strong><span>${escapeHtml(event.date)} · ${escapeHtml(event.time)} · ${escapeHtml(event.location)}</span>`;
@@ -153,7 +153,7 @@ function render(){
     const marker = L.marker([Number(e.lat), Number(e.lng)], {
       icon:L.divIcon({className:"event-pin", html:'<span aria-hidden="true">●</span>', iconSize:[34,34], iconAnchor:[17,17]})
     }).addTo(map);
-    marker.bindPopup(`<strong>${escapeHtml(e.title)}</strong><br>${escapeHtml(e.date)} · ${escapeHtml(e.time)}<br>${escapeHtml(e.location)}<br><em>${modeLabel(e.joinMode)}</em>`);
+    marker.bindPopup(`<strong>${escapeHtml(e.title)}</strong><br>${escapeHtml(e.date)} · ${escapeHtml(e.time)}<br>${escapeHtml(e.location)}<br><em>${modeLabel(e.joinMode)}</em>${window.PlayLink?.ready ? `<br><button class="primary" data-action="detail" data-id="${escapeHtml(e.id)}">Ouvrir la session</button>` : ''}`);
     markerById.set(e.id, marker);
     return marker;
   });
@@ -196,7 +196,7 @@ document.addEventListener("click", e => {
     return;
   }
   const fallbackPin = e.target.closest("[data-fallback-id]");
-  if (fallbackPin) { showFallbackEvent(Number(fallbackPin.dataset.fallbackId)); return; }
+  if (fallbackPin) { if(window.PlayLink?.ready)window.PlayLink.openDetail(fallbackPin.dataset.fallbackId);else showFallbackEvent(Number(fallbackPin.dataset.fallbackId)); return; }
   if (e.target.id === "clearFilters") {
     $("search").value = ""; $("sportFilter").value = ""; $("modeFilter").value = ""; render();
   }
@@ -220,9 +220,10 @@ $("openCreate").addEventListener("click", () => $("createDialog").showModal());
 $("notifyBtn").addEventListener("click", () => $("notifyDialog").showModal());
 $("createForm").elements.date.min = new Date().toLocaleDateString("en-CA");
 
-$("createForm").addEventListener("submit", (e) => {
+$("createForm").addEventListener("submit", async (e) => {
   e.preventDefault();
   const data = new FormData(e.target);
+  if(window.PlayLink){try{await window.PlayLink.createEvent(data);}catch(error){showToast(error.message);}return;}
   const city = data.get("city");
   const [lat,lng] = cityCoordinates[city];
   const newEvent = {
@@ -256,8 +257,8 @@ const pref = readSaved("playlink-notifications", {});
 $("notifyCity").value = pref.city || "";
 $("notifyRadius").value = pref.radius || "10 km";
 $("notifySports").value = pref.sports || "";
-$("pushEnabled").checked = pref.push !== false;
-$("emailEnabled").checked = pref.email !== false;
+$("pushEnabled").checked = false;
+$("emailEnabled").checked = false;
 
 $("notifyDialog").querySelector("form").addEventListener("submit", e => {
   e.preventDefault();
@@ -269,7 +270,7 @@ $("notifyDialog").querySelector("form").addEventListener("submit", e => {
     email: $("emailEnabled").checked
   }));
   $("notifyDialog").close();
-  showToast("Préférences enregistrées dans ce navigateur. Aucun envoi réel dans la démo.");
+  showToast("Préférences enregistrées. Consulte l’onglet Notifications.");
 });
 
 render();
