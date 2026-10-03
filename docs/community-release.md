@@ -40,9 +40,9 @@ Tests transactionnels Supabase exécutés puis annulés : capacité, inscription
 - Les confirmations destinées au public attendent un service SMTP et un domaine vérifié. La confirmation e-mail reste activée. `bonjour@playlink-sport.fr` est une proposition : ni adresse créée ni domaine acheté.
 - Le rôle modérateur doit être attribué à un compte de confiance après inscription (instruction en bas de `supabase.sql`). Aucun inscrit ne devient administrateur automatiquement.
 - Les notifications sont dans le site ; push et alertes événementielles par e-mail non activés.
-- La carte situe le centre de la ville choisie. Le lieu précis est indiqué dans la fiche. Une carte simplifiée remplace les tuiles si elles sont indisponibles.
+- La création exige désormais un point de rendez-vous sur la carte, déplaçable et modifiable par coordonnées. Les anciennes sessions conservent leur position initiale. Une carte simplifiée remplace les tuiles de l’exploration si elles sont indisponibles.
 - Préférences de proximité et session conservées dans ce navigateur. Données actualisées toutes les 30 secondes si la page est visible et sans saisie en cours.
 - Retirer un ami conserve son inscription acceptée. Bloquer annule les participations futures entre le joueur et l’organisateur concernés et libère la place.
 - Les profils sont visibles aux membres connectés, sauf entre personnes bloquées. Discussions réservées aux participants acceptés.
 - Chaque occurrence hebdomadaire est indépendante ; l’annulation porte sur une séance.
-- `apps/mobile` reste le prototype Expo distinct, non raccordé à ce backend.
+- `apps/mobile` contient désormais l’application native Android/iOS raccordée à ce backend. Voir son README pour les builds d’essai et les étapes avant distribution sur les stores.

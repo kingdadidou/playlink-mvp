@@ -1,90 +1,97 @@
-import React, { useMemo, useState } from "react";
-import { SafeAreaView, View, Text, FlatList, Pressable, StyleSheet, TextInput } from "react-native";
-import { StatusBar } from "expo-status-bar";
+import React,{useEffect,useRef,useState} from 'react';
+import {ActivityIndicator,Alert,AppState,KeyboardAvoidingView,Linking,Modal,Platform,Pressable,RefreshControl,ScrollView,StyleSheet,Text,TextInput,View} from 'react-native';
+import {SafeAreaProvider,SafeAreaView} from 'react-native-safe-area-context';
+import {StatusBar} from 'expo-status-bar';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import {WebView} from 'react-native-webview';
+import * as api from './api';
 
-const EVENTS = [
-  { id:"1", sport:"Running", title:"Running 10 km du dimanche", city:"Sceaux", date:"04/10 · 10:00", level:"Intermédiaire", mode:"Immédiat", places:"7/12" },
-  { id:"2", sport:"Football", title:"Five 5v5 après le travail", city:"Palaiseau", date:"05/10 · 19:30", level:"Tous niveaux", mode:"Validation", places:"8/10" },
-  { id:"3", sport:"Tennis", title:"Tennis simple - niveau loisir", city:"Massy", date:"06/10 · 18:00", level:"Loisir", mode:"Immédiat", places:"1/2" },
-];
-
-export default function App() {
-  const [query, setQuery] = useState("");
-  const list = useMemo(() => EVENTS.filter(e =>
-    (e.title + " " + e.city + " " + e.sport).toLowerCase().includes(query.toLowerCase())
-  ), [query]);
-
-  return (
-    <SafeAreaView style={styles.page}>
-      <StatusBar style="dark" />
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.logo}>PlayLink</Text>
-          <Text style={styles.subtitle}>Du sport, près de chez toi.</Text>
-        </View>
-        <Pressable style={styles.avatar}><Text style={styles.avatarText}>FL</Text></Pressable>
-      </View>
-
-      <Text style={styles.hero}>Trouve ton prochain sport.</Text>
-      <TextInput
-        style={styles.search}
-        placeholder="Rechercher un sport ou une ville"
-        value={query}
-        onChangeText={setQuery}
-      />
-
-      <View style={styles.row}>
-        <Pressable style={[styles.tab, styles.tabActive]}><Text style={styles.tabActiveText}>Liste</Text></Pressable>
-        <Pressable style={styles.tab}><Text>Carte</Text></Pressable>
-        <Pressable style={styles.tab}><Text>Alertes</Text></Pressable>
-      </View>
-
-      <FlatList
-        data={list}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ gap: 12, paddingBottom: 100 }}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <View style={styles.cardTop}>
-              <Text style={styles.sport}>{item.sport}</Text>
-              <Text style={styles.mode}>{item.mode}</Text>
-            </View>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.meta}>📍 {item.city}  ·  📅 {item.date}</Text>
-            <Text style={styles.meta}>🎯 {item.level}  ·  👥 {item.places}</Text>
-            <Pressable style={styles.button}>
-              <Text style={styles.buttonText}>{item.mode === "Immédiat" ? "Rejoindre" : "Demander à participer"}</Text>
-            </Pressable>
-          </View>
-        )}
-      />
-
-      <Pressable style={styles.fab}><Text style={styles.fabText}>＋</Text></Pressable>
-    </SafeAreaView>
-  );
+const SPORTS=['Running','Football','Tennis','Basket','Autre'];
+const EMPTY={events:[],participations:[],profiles:[],friendships:[],groups:[],members:[],messages:[],invitations:[],notifications:[],blocks:[]};
+const WEBSITE='https://playlink-mvp.vercel.app';
+const format=d=>new Date(d).toLocaleString('fr-FR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+const future=e=>!e.cancelled&&new Date(e.starts_at)>new Date();
+const STATUS={accepted:'Inscrit',pending:'Validation en attente',waitlisted:'Liste d’attente',cancelled:'Désistement',rejected:'Participation refusée'};
+function Button({children,onPress,secondary,disabled}){return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={[s.button,secondary&&s.secondary,disabled&&{opacity:.45}]}><Text style={[s.buttonText,secondary&&s.secondaryText]}>{children}</Text></Pressable>;}
+function Field({label,...props}){return <View style={s.field}><Text style={s.label}>{label}</Text><TextInput accessibilityLabel={label} placeholderTextColor="#7a827a" style={[s.input,props.multiline&&{minHeight:80,textAlignVertical:'top'}]} {...props}/></View>;}
+function Choices({values,value,onChange}){return <View style={s.choices}>{values.map(option=>{const [id,title]=Array.isArray(option)?option:[option,option];return <Pressable key={id} accessibilityRole="button" accessibilityState={{selected:value===id}} onPress={()=>onChange(id)} style={[s.chip,value===id&&s.chipActive]}><Text style={value===id?s.light:s.muted}>{title}</Text></Pressable>;})}</View>;}
+function Sheet({visible,title,onClose,children}){return <Modal visible={visible} animationType="slide" onRequestClose={onClose}><SafeAreaView style={s.page}><View style={s.sheetHeader}><Text style={s.heading}>{title}</Text><Button secondary onPress={onClose}>Fermer</Button></View><KeyboardAvoidingView style={{flex:1}} behavior={Platform.OS==='ios'?'padding':undefined}>{children}</KeyboardAvoidingView></SafeAreaView></Modal>;}
+function MapPanel({events=[],point,onPoint,onEvent,pick=false}){
+  const ref=useRef(),[ready,setReady]=useState(false),[failed,setFailed]=useState(false);
+  const data=JSON.stringify({mode:pick?'pick':'explore',point,events:events.map(({id,lat,lng})=>({id,lat,lng}))});
+  useEffect(()=>{if(ready)ref.current?.injectJavaScript(`window.renderPlayLinkMap(${data.replace(/</g,'\\u003c')});true;`);},[ready,data]);
+  function receive(e){
+    try{
+      const message=JSON.parse(e.nativeEvent.data);
+      if(message.type==='ready')setReady(true);
+      if(message.type==='point'&&pick&&Number.isFinite(message.lat)&&Number.isFinite(message.lng)&&Math.abs(message.lat)<=90&&Math.abs(message.lng)<=180)onPoint({lat:message.lat,lng:message.lng});
+      if(message.type==='event'&&events.some(x=>x.id===message.id))onEvent(message.id);
+    }catch{}
+  }
+  return <View style={s.map}>{failed?<View style={s.padding}><Text>Carte indisponible. Vérifie ta connexion.</Text><Button onPress={()=>{setFailed(false);setReady(false);}}>Réessayer</Button></View>:<WebView ref={ref} source={{uri:WEBSITE+'/mobile-map.html'}} originWhitelist={[WEBSITE]} javaScriptEnabled onShouldStartLoadWithRequest={r=>r.url.startsWith(WEBSITE+'/mobile-map.html')||r.url==='about:blank'} onError={()=>setFailed(true)} onHttpError={()=>setFailed(true)} onMessage={receive}/>}</View>;
 }
 
-const styles = StyleSheet.create({
-  page:{ flex:1, backgroundColor:"#F6F7F9", paddingHorizontal:18 },
-  header:{ flexDirection:"row", alignItems:"center", justifyContent:"space-between", paddingTop:10, paddingBottom:18 },
-  logo:{ fontSize:24, fontWeight:"800", color:"#111827" },
-  subtitle:{ color:"#6B7280", marginTop:2 },
-  avatar:{ width:42, height:42, borderRadius:14, backgroundColor:"#111827", alignItems:"center", justifyContent:"center" },
-  avatarText:{ color:"white", fontWeight:"800" },
-  hero:{ fontSize:36, lineHeight:39, fontWeight:"900", color:"#111827", marginBottom:16 },
-  search:{ backgroundColor:"white", borderWidth:1, borderColor:"#E5E7EB", borderRadius:14, padding:14, marginBottom:12 },
-  row:{ flexDirection:"row", gap:8, marginBottom:14 },
-  tab:{ paddingVertical:10, paddingHorizontal:14, backgroundColor:"white", borderRadius:12, borderWidth:1, borderColor:"#E5E7EB" },
-  tabActive:{ backgroundColor:"#111827" },
-  tabActiveText:{ color:"white", fontWeight:"700" },
-  card:{ backgroundColor:"white", borderWidth:1, borderColor:"#E5E7EB", borderRadius:18, padding:16 },
-  cardTop:{ flexDirection:"row", justifyContent:"space-between" },
-  sport:{ fontSize:12, fontWeight:"800", backgroundColor:"#F3F4F6", paddingVertical:5, paddingHorizontal:9, borderRadius:999 },
-  mode:{ fontSize:12, color:"#6B7280" },
-  title:{ fontSize:18, fontWeight:"800", marginTop:12, marginBottom:8 },
-  meta:{ color:"#4B5563", marginBottom:5 },
-  button:{ backgroundColor:"#111827", borderRadius:12, padding:12, marginTop:12, alignItems:"center" },
-  buttonText:{ color:"white", fontWeight:"800" },
-  fab:{ position:"absolute", right:20, bottom:26, width:58, height:58, borderRadius:18, backgroundColor:"#111827", alignItems:"center", justifyContent:"center" },
-  fabText:{ color:"white", fontSize:30, lineHeight:32 }
+function PlayLink(){
+  const [data,setData]=useState(EMPTY),[tab,setTab]=useState('explore'),[query,setQuery]=useState(''),[sport,setSport]=useState('Tous'),[mapView,setMapView]=useState(false);
+  const [loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState(''),[auth,setAuth]=useState(false),[signup,setSignup]=useState(false),[email,setEmail]=useState(''),[password,setPassword]=useState(''),[pseudo,setPseudo]=useState('');
+  const [detail,setDetail]=useState(null),[creating,setCreating]=useState(false),[message,setMessage]=useState(''),[profile,setProfile]=useState(null),[activity,setActivity]=useState('upcoming'),[report,setReport]=useState(null),[reason,setReason]=useState('');
+  const [groupName,setGroupName]=useState(''),[groupSport,setGroupSport]=useState('Running'),[invite,setInvite]=useState(null);
+  const user=api.currentUser()?.id,lock=useRef(false);
+  const person=id=>data.profiles.find(p=>p.id===id)?.name||'Sportif';
+  const mine=id=>data.participations.find(p=>p.event_id===id&&p.user_id===user);
+  const friends=data.friendships.filter(f=>f.status==='accepted').map(f=>f.sender===user?f.receiver:f.sender);
+  async function refresh(){try{setError('');setData(await api.load());}catch(e){setError(e.message);}finally{setLoading(false);}}
+  useEffect(()=>{api.restore().then(refresh).catch(e=>{setError(e.message);setLoading(false);});const sub=AppState.addEventListener('change',state=>{if(state==='active'&&!lock.current)refresh();});return()=>sub.remove();},[]);
+  async function run(fn){if(lock.current)return;lock.current=true;setBusy(true);try{await fn();}catch(e){Alert.alert('PlayLink',e.message);}finally{lock.current=false;setBusy(false);}}
+  async function act(action,values={}){if(!api.currentUser()){setAuth(true);return false;}await api.action(action,values);await refresh();return true;}
+  const confirm=(title,action,values)=>Alert.alert(title,'Cette action sera enregistrée pour la session.',[{text:'Retour',style:'cancel'},{text:'Confirmer',onPress:()=>run(()=>act(action,values))}]);
+  function open(id){if(!user){setAuth(true);return;}setMessage('');setDetail(id);}
+  const visible=data.events.filter(future).filter(e=>(sport==='Tous'||e.sport===sport)&&(e.title+' '+e.city).toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+  function eventCard(e){const count=data.participations.filter(p=>p.event_id===e.id&&p.status==='accepted').length;return <Pressable key={e.id} accessibilityRole="button" onPress={()=>open(e.id)} style={s.card}><Text style={s.eyebrow}>{e.sport} · {format(e.starts_at)}</Text><Text style={s.cardTitle}>{e.title}</Text><Text style={s.muted}>{e.city} · {e.level}</Text><Text style={s.meta}>{e.cancelled?'Session annulée':`${count}/${e.capacity} participants · ${e.visibility==='friends'?'Entre amis':e.visibility==='group'?'Groupe':'Public'}`}</Text>{mine(e.id)&&<Text style={s.meta}>{STATUS[mine(e.id).status]}{mine(e.id).confirmed?' · Présence confirmée':''}</Text>}<Text style={s.link}>Voir la session →</Text></Pressable>;}
+  const event=data.events.find(e=>e.id===detail),participation=mine(detail),owner=event?.organizer_id===user;
+  const accepted=data.participations.filter(p=>p.event_id===detail&&p.status==='accepted');
+  const needsAuth=tab!=='explore'&&!user;
+  return <SafeAreaView style={s.page}><StatusBar style="dark"/><View style={s.header}><View><Text style={s.logo}>PlayLink</Text><Text style={s.muted}>Le sport se partage.</Text></View><Button secondary onPress={()=>user?(setProfile(null),setTab('profile')):setAuth(true)}>{user?person(user):'Connexion'}</Button></View>
+    {error?<View style={s.error}><Text>{error}</Text><Button secondary onPress={refresh}>Réessayer</Button></View>:null}
+    {loading?<ActivityIndicator style={{margin:24}} color="#174c3e"/>:null}
+    <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={s.content} refreshControl={<RefreshControl refreshing={loading} onRefresh={()=>{setLoading(true);refresh();}}/>}>
+    {needsAuth?<View style={s.card}><Text style={s.heading}>Retrouve ton équipe</Text><Text style={s.muted}>Connecte-toi pour accéder à ta communauté.</Text><Button onPress={()=>setAuth(true)}>Se connecter</Button></View>:<>
+    {tab==='explore'&&<><Text style={s.hero}>Un terrain. Des gens. Du jeu.</Text><Field label="Rechercher" value={query} onChangeText={setQuery} placeholder="Sport, événement ou ville"/><Choices values={['Tous',...SPORTS]} value={sport} onChange={setSport}/><View style={s.row}><Button secondary onPress={()=>setMapView(!mapView)}>{mapView?'Voir la liste':'Voir la carte'}</Button><Button onPress={()=>user?setCreating(true):setAuth(true)}>Créer une session</Button></View>{mapView?<MapPanel events={visible} onEvent={open}/>:visible.length?visible.map(eventCard):<Text style={s.empty}>Pas encore de session ici. Propose la première à tes amis.</Text>}</>}
+    {tab==='activities'&&<><Text style={s.heading}>Mes activités</Text><Choices values={[["upcoming","À venir"],["requests","Demandes"],["organizing","J’organise"]]} value={activity} onChange={setActivity}/>{data.events.filter(e=>activity==='organizing'?e.organizer_id===user:activity==='requests'?['pending','waitlisted'].includes(mine(e.id)?.status):future(e)&&mine(e.id)?.status==='accepted').map(eventCard)}<Button onPress={()=>setCreating(true)}>Créer une session</Button></>}
+    {tab==='friends'&&<><Text style={s.heading}>Amis & joueurs</Text><Field label="Rechercher un joueur" value={query} onChangeText={setQuery}/>{data.profiles.filter(p=>p.id!==user&&(p.name+' '+p.city).toLowerCase().includes(query.toLowerCase())).map(p=>{const f=data.friendships.find(f=>f.sender===p.id||f.receiver===p.id);return <View key={p.id} style={s.card}><Text style={s.cardTitle}>{p.name}</Text><Text style={s.muted}>{p.city} · {Object.entries(p.sports||{}).map(([a,b])=>a+' : '+b).join(' · ')}</Text><Text>{p.availability}</Text>{friends.includes(p.id)?<Button secondary disabled={busy} onPress={()=>run(()=>act('friend_remove',{user_id:p.id}))}>Retirer des amis</Button>:f?.receiver===user?<><Button disabled={busy} onPress={()=>run(()=>act('friend_accept',{user_id:p.id}))}>Accepter la demande</Button><Button secondary disabled={busy} onPress={()=>run(()=>act('friend_decline',{user_id:p.id}))}>Refuser</Button></>:<Button disabled={busy} onPress={()=>run(()=>act(f?'friend_remove':'friend_request',{user_id:p.id}))}>{f?'Annuler la demande':'Ajouter en ami'}</Button>}<View style={s.row}><Button secondary onPress={()=>setReport({user_id:p.id})}>Signaler</Button><Button secondary onPress={()=>confirm('Bloquer ce joueur et annuler vos participations communes ?', 'block',{user_id:p.id})}>Bloquer</Button></View></View>;})}{data.blocks.map(b=><Button key={b.target} secondary disabled={busy} onPress={()=>run(()=>act('unblock',{user_id:b.target}))}>Débloquer un joueur</Button>)}</>}
+    {tab==='groups'&&<><Text style={s.heading}>Mes groupes</Text>{data.groups.filter(g=>data.members.some(m=>m.group_id===g.id&&m.user_id===user)).map(g=><View style={s.card} key={g.id}><Text style={s.cardTitle}>{g.name}</Text><Text>{g.sport} · {data.members.filter(m=>m.group_id===g.id).map(m=>person(m.user_id)).join(', ')}</Text>{g.owner===user?<Button secondary onPress={()=>setInvite({group_id:g.id})}>Inviter un ami</Button>:<Button secondary onPress={()=>run(()=>act('group_leave',{group_id:g.id}))}>Quitter le groupe</Button>}</View>)}<Field label="Nom du nouveau groupe" value={groupName} onChangeText={setGroupName}/><Choices values={SPORTS} value={groupSport} onChange={setGroupSport}/><Button disabled={busy||groupName.trim().length<2} onPress={()=>run(async()=>{await act('group_create',{name:groupName.trim(),sport:groupSport});setGroupName('');})}>Créer le groupe</Button></>}
+    {tab==='notifications'&&<><Text style={s.heading}>Invitations & nouvelles</Text><Text style={s.muted}>Les notifications se consultent ici. Les envois push ne sont pas encore activés.</Text>{data.invitations.filter(i=>i.receiver===user&&i.status==='pending').map(i=><View style={s.card} key={i.id}><Text style={s.cardTitle}>{person(i.sender)} t’invite</Text><Text>{i.event_id?data.events.find(e=>e.id===i.event_id)?.title:data.groups.find(g=>g.id===i.group_id)?.name}</Text><Button disabled={busy} onPress={()=>run(()=>act('invite_accept',{id:i.id}))}>Accepter</Button><Button secondary disabled={busy} onPress={()=>run(()=>act('invite_decline',{id:i.id}))}>Décliner</Button></View>)}{data.events.filter(e=>future(e)&&new Date(e.starts_at)-Date.now()<86400000&&mine(e.id)?.status==='accepted'&&!mine(e.id)?.confirmed).map(eventCard)}{data.notifications.map(n=><View style={s.card} key={n.id}><Text>{n.body}</Text><Text style={s.muted}>{format(n.created_at)}</Text>{n.event_id&&<Button secondary onPress={()=>open(n.event_id)}>Voir la session</Button>}</View>)}<Button secondary disabled={busy} onPress={()=>run(()=>act('read_notifications'))}>Tout marquer comme lu</Button></>}
+    {tab==='profile'&&<Profile value={profile||data.profiles.find(p=>p.id===user)||{name:'',city:'',sports:{},availability:'',bio:''}} onChange={setProfile} busy={busy} onSave={p=>run(()=>act('profile',p))} onLogout={()=>run(async()=>{await api.logout();setProfile(null);setTab('explore');await refresh();})}/>}
+    </>}
+    </ScrollView>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.nav} contentContainerStyle={s.navContent}>{[['explore','Explorer'],['activities','Activités'],['friends','Amis'],['groups','Groupes'],['notifications','Nouvelles'],['profile','Profil']].map(([id,label])=><Pressable accessibilityRole="tab" accessibilityState={{selected:tab===id}} key={id} onPress={()=>{setTab(id);setQuery('');}} style={[s.navItem,tab===id&&s.navActive]}><Text style={tab===id?s.navTextActive:s.muted}>{label}</Text></Pressable>)}</ScrollView>
+    <Sheet visible={auth} title={signup?'Créer mon compte':'Se connecter'} onClose={()=>{setAuth(false);setPassword('');}}><ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">{signup&&<Field label="Prénom ou pseudo" value={pseudo} onChangeText={setPseudo} maxLength={60}/>}<Field label="E-mail" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email"/><Field label="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" autoComplete={signup?'new-password':'current-password'}/><Button disabled={busy||!email||password.length<8||(signup&&pseudo.trim().length<2)} onPress={()=>run(async()=>{const connected=await api.authenticate(email,password,pseudo,signup);setPassword('');if(connected){setAuth(false);await refresh();}else Alert.alert('Vérifie tes e-mails','Confirme ton compte puis connecte-toi.');})}>{busy?'Connexion…':signup?'Créer mon compte':'Se connecter'}</Button><Button secondary onPress={()=>setSignup(!signup)}>{signup?'J’ai déjà un compte':'Créer un compte'}</Button></ScrollView></Sheet>
+    <CreateSheet visible={creating} onClose={()=>setCreating(false)} groups={data.groups.filter(g=>data.members.some(m=>m.group_id===g.id&&m.user_id===user))} busy={busy} onSubmit={values=>run(async()=>{await act('create_event',values);setCreating(false);setTab('activities');setActivity('organizing');})}/>
+    <Sheet visible={!!detail} title="La session" onClose={()=>setDetail(null)}><ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled">{event?<><Text style={s.eyebrow}>{event.sport} · {event.visibility==='friends'?'Entre amis':event.visibility==='group'?'Groupe':'Public'}</Text><Text style={s.heading}>{event.title}</Text><Text style={s.meta}>{format(event.starts_at)} · {event.city}</Text><Text>{event.location}</Text><Button secondary onPress={()=>Linking.openURL(`https://www.openstreetmap.org/?mlat=${event.lat}&mlon=${event.lng}#map=17/${event.lat}/${event.lng}`)}>Voir le point de rendez-vous</Button><Text>{event.description}</Text>{Object.entries(event.details||{}).map(([k,v])=>v?<Text key={k} style={s.meta}>{k} : {String(v)}</Text>:null)}<Text style={s.meta}>{accepted.length}/{event.capacity} participants · {event.cancelled?'Annulé':STATUS[participation?.status]||'Non inscrit'}</Text>{future(event)&&!owner&&<Button disabled={busy} onPress={()=>run(()=>act(!participation||['cancelled','rejected'].includes(participation.status)?'join':'leave',{event_id:detail}))}>{!participation||['cancelled','rejected'].includes(participation.status)?accepted.length>=event.capacity?'Rejoindre la liste d’attente':event.join_mode==='approval'?'Demander une place':'Rejoindre':'Me désister'}</Button>}{future(event)&&participation?.status==='accepted'&&!participation.confirmed&&<Button disabled={busy} onPress={()=>run(()=>act('confirm',{event_id:detail}))}>Confirmer ma présence</Button>}{owner&&future(event)&&<><Button secondary onPress={()=>setInvite({event_id:detail})}>Inviter mes amis</Button><Button secondary onPress={()=>confirm('Annuler cette session ?','cancel_event',{event_id:detail})}>Annuler cette session</Button></>}<Text style={s.section}>Participants</Text>{accepted.map(p=><View key={p.user_id} style={s.member}><Text>{person(p.user_id)}{p.confirmed?' · confirmé':''}</Text>{owner&&p.user_id!==user&&future(event)&&<Button secondary onPress={()=>confirm('Retirer ce participant ?','remove_participant',{event_id:detail,user_id:p.user_id})}>Retirer</Button>}</View>)}{owner&&data.participations.filter(p=>p.event_id===detail&&['pending','waitlisted'].includes(p.status)).map(p=><View key={p.user_id} style={s.card}><Text>{person(p.user_id)} · {STATUS[p.status]}</Text><Button disabled={busy} onPress={()=>run(()=>act('approve',{event_id:detail,user_id:p.user_id}))}>Accepter</Button><Button secondary disabled={busy} onPress={()=>run(()=>act('reject',{event_id:detail,user_id:p.user_id}))}>Refuser</Button></View>)}<Text style={s.section}>Discussion</Text>{participation?.status==='accepted'?<>{data.messages.filter(m=>m.event_id===detail).map(m=><View style={s.bubble} key={m.id}><Text style={s.label}>{person(m.author)} · {format(m.created_at)}</Text><Text>{m.body}</Text></View>)}{!event.cancelled&&<><Field label="Ton message" value={message} onChangeText={setMessage} multiline maxLength={2000}/><Button disabled={busy||!message.trim()} onPress={()=>run(async()=>{await act('message',{event_id:detail,body:message.trim()});setMessage('');})}>Envoyer</Button></>}</>:<Text>Discussion réservée aux participants acceptés.</Text>}<Button secondary onPress={()=>setReport({event_id:detail})}>Signaler la session</Button></>:<Text>Cette session n’est plus accessible.</Text>}</ScrollView></Sheet>
+    <Sheet visible={!!report} title="Signaler" onClose={()=>{setReport(null);setReason('');}}><View style={s.padding}><Field label="Explique le problème" multiline value={reason} onChangeText={setReason} maxLength={1000}/><Button disabled={busy||reason.trim().length<5} onPress={()=>run(async()=>{await act('report',{...report,reason:reason.trim()});setReport(null);setReason('');Alert.alert('Signalement reçu','Il est disponible pour la modération.');})}>Transmettre</Button></View></Sheet>
+    <Sheet visible={!!invite} title="Inviter un ami" onClose={()=>setInvite(null)}><ScrollView contentContainerStyle={s.content}>{friends.length?friends.map(id=><Button disabled={busy} key={id} onPress={()=>run(async()=>{await act('invite',{...invite,user_id:id});setInvite(null);})}>{person(id)}</Button>):<Text>Ajoute d’abord des joueurs à tes amis.</Text>}</ScrollView></Sheet>
+  </SafeAreaView>;
+}
+
+function Profile({value,onChange,onSave,onLogout,busy}){return <><Text style={s.heading}>Mon profil sportif</Text><Field label="Prénom ou pseudo" value={value.name} onChangeText={name=>onChange({...value,name})} maxLength={60}/><Field label="Ville" value={value.city} onChangeText={city=>onChange({...value,city})}/>{SPORTS.map(sport=><Field key={sport} label={sport+' : niveau / allure'} value={value.sports?.[sport]||''} onChangeText={level=>onChange({...value,sports:{...value.sports,[sport]:level}})} maxLength={100}/>)}<Field label="Disponibilités" value={value.availability} onChangeText={availability=>onChange({...value,availability})} maxLength={500}/><Field label="Quelques mots sur toi" multiline value={value.bio} onChangeText={bio=>onChange({...value,bio})} maxLength={1000}/><Button disabled={busy||value.name.trim().length<2} onPress={()=>onSave(value)}>Enregistrer</Button><Button secondary disabled={busy} onPress={onLogout}>Se déconnecter</Button></>;}
+
+function CreateSheet({visible,onClose,groups,busy,onSubmit}){
+  const fresh=()=>({title:'',sport:'Running',city:'',location:'',date:new Date(Date.now()+86400000),level:'Tous niveaux',capacity:'10',join_mode:'instant',visibility:'friends',group_id:'',occurrences:1,description:'',details:{},point:null});
+  const [draft,setDraft]=useState(fresh),[picker,setPicker]=useState(null);
+  useEffect(()=>{if(visible)setDraft(fresh());},[visible]);
+  const update=(key,value)=>setDraft(d=>({...d,[key]:value}));
+  const fields=draft.sport==='Running'?['Distance','Allure']:draft.sport==='Tennis'?['Surface','Format']:['Format'];
+  function submit(){
+    const capacity=Number(draft.capacity);
+    if(!draft.point)return Alert.alert('Choisis le rendez-vous','Touche la carte pour placer un point.');
+    if(draft.title.trim().length<3||draft.location.trim().length<2||!draft.city.trim()||draft.date<=new Date()||!Number.isInteger(capacity)||capacity<2||capacity>200)return Alert.alert('Vérifie la session','Renseigne le titre, la ville, le lieu, une date future et 2 à 200 places.');
+    if(draft.visibility==='group'&&!draft.group_id)return Alert.alert('Choisis un groupe');
+    onSubmit({...draft,title:draft.title.trim(),city:draft.city.trim(),location:draft.location.trim(),starts_at:draft.date.toISOString(),lat:draft.point.lat,lng:draft.point.lng,capacity});
+  }
+  return <Sheet visible={visible} title="Créer une session" onClose={onClose}><ScrollView contentContainerStyle={s.content} keyboardShouldPersistTaps="handled"><Field label="Titre" value={draft.title} onChangeText={v=>update('title',v)} maxLength={120}/><Choices values={SPORTS} value={draft.sport} onChange={v=>update('sport',v)}/><View style={s.row}><Button secondary onPress={()=>setPicker('date')}>{draft.date.toLocaleDateString('fr-FR')}</Button><Button secondary onPress={()=>setPicker('time')}>{draft.date.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</Button></View>{picker&&<><DateTimePicker value={draft.date} mode={picker} minimumDate={picker==='date'?new Date():undefined} is24Hour onChange={(event,value)=>{if(Platform.OS==='android')setPicker(null);if(value)update('date',value);}}/>{Platform.OS==='ios'&&<Button secondary onPress={()=>setPicker(null)}>Valider l’heure / la date</Button>}</>}<Field label="Ville" value={draft.city} onChangeText={v=>update('city',v)} maxLength={100}/><Field label="Lieu / indications du rendez-vous" value={draft.location} onChangeText={v=>update('location',v)} maxLength={200}/><Text style={s.section}>Place le rendez-vous sur la carte</Text><MapPanel pick point={draft.point} onPoint={p=>update('point',p)}/><Text style={s.muted}>{draft.point?`Point choisi : ${draft.point.lat.toFixed(5)}, ${draft.point.lng.toFixed(5)}`:'Touche la carte. Le point est obligatoire.'}</Text><Field label="Nombre de places, toi compris" value={draft.capacity} onChangeText={v=>update('capacity',v)} keyboardType="number-pad"/><Text style={s.label}>Niveau</Text><Choices values={['Tous niveaux','Débutant','Loisir','Intermédiaire','Avancé']} value={draft.level} onChange={v=>update('level',v)}/><Text style={s.label}>Inscription</Text><Choices values={[["instant","Immédiate"],["approval","Sur validation"]]} value={draft.join_mode} onChange={v=>update('join_mode',v)}/><Text style={s.label}>Visibilité</Text><Choices values={[["friends","Mes amis"],["group","Mon groupe"],["public","Public"]]} value={draft.visibility} onChange={v=>update('visibility',v)}/>{draft.visibility==='group'&&<Choices values={groups.map(g=>[g.id,g.name])} value={draft.group_id} onChange={v=>update('group_id',v)}/>}<Text style={s.label}>Répéter chaque semaine</Text><Choices values={[[1,'Une fois'],[4,'4 semaines'],[8,'8 semaines'],[12,'12 semaines']]} value={draft.occurrences} onChange={v=>update('occurrences',v)}/>{[...fields,'Matériel'].map(k=><Field key={k} label={k} value={draft.details[k]||''} onChangeText={v=>update('details',{...draft.details,[k]:v})} maxLength={200}/>)}<Field label="Description" multiline value={draft.description} onChangeText={v=>update('description',v)} maxLength={2000}/><Button disabled={busy} onPress={submit}>{busy?'Publication…':'Publier la session'}</Button></ScrollView></Sheet>;
+}
+
+export default function App(){return <SafeAreaProvider><PlayLink/></SafeAreaProvider>;}
+const s=StyleSheet.create({
+  page:{flex:1,backgroundColor:'#f7f5ed'},header:{padding:18,flexDirection:'row',justifyContent:'space-between',alignItems:'center',borderBottomWidth:1,borderColor:'#d8dece'},logo:{fontSize:27,fontWeight:'800',color:'#174c3e'},hero:{fontSize:35,fontWeight:'800',lineHeight:39,color:'#174c3e',marginVertical:18},heading:{fontSize:25,fontWeight:'700',color:'#174c3e',flexShrink:1},section:{fontSize:19,fontWeight:'700',color:'#174c3e',marginTop:22,marginBottom:12},content:{padding:20,paddingBottom:40},padding:{padding:20},muted:{color:'#62715e',lineHeight:21},meta:{color:'#52624e',marginVertical:7,lineHeight:21},card:{padding:20,borderWidth:1,borderColor:'#cfd7c6',borderRadius:8,backgroundColor:'#fffef9',marginVertical:9},cardTitle:{fontSize:21,fontWeight:'700',color:'#174c3e',marginVertical:9},eyebrow:{fontSize:12,fontWeight:'700',color:'#9c5137'},link:{color:'#174c3e',fontWeight:'700',marginTop:14},button:{backgroundColor:'#174c3e',paddingVertical:13,paddingHorizontal:16,borderRadius:6,alignItems:'center',marginVertical:6},buttonText:{color:'white',fontWeight:'700'},secondary:{backgroundColor:'transparent',borderWidth:1,borderColor:'#aebaa6'},secondaryText:{color:'#174c3e'},row:{flexDirection:'row',flexWrap:'wrap',gap:10},field:{marginVertical:9},label:{fontSize:13,fontWeight:'600',color:'#344e3e',marginBottom:6},input:{backgroundColor:'#fffef9',borderWidth:1,borderColor:'#c7d0bd',borderRadius:5,padding:13,fontSize:16,color:'#1e352a'},choices:{flexDirection:'row',flexWrap:'wrap',gap:7,marginVertical:10},chip:{paddingVertical:9,paddingHorizontal:12,borderWidth:1,borderColor:'#c7d0bd',borderRadius:20},chipActive:{backgroundColor:'#174c3e'},light:{color:'white'},empty:{paddingVertical:25,color:'#62715e',lineHeight:24},nav:{flexGrow:0,borderTopWidth:1,borderColor:'#d8dece'},navContent:{paddingHorizontal:8},navItem:{padding:15,borderTopWidth:3,borderTopColor:'transparent'},navActive:{borderTopColor:'#c36642'},navTextActive:{color:'#174c3e',fontWeight:'700'},sheetHeader:{padding:16,flexDirection:'row',alignItems:'center',justifyContent:'space-between',gap:10,borderBottomWidth:1,borderColor:'#d8dece'},map:{height:340,borderRadius:8,overflow:'hidden',marginVertical:12,backgroundColor:'#e4e8dd'},bubble:{padding:14,backgroundColor:'#e5ecdd',borderRadius:6,marginVertical:6},member:{paddingVertical:12,borderBottomWidth:1,borderColor:'#d8dece'},error:{backgroundColor:'#f7dfce',padding:12}
 });

@@ -3,5 +3,7 @@ node_modules/
 .next/
 .env
 .env.local
+.env.*
+apps/mobile/dist/
 .vercel/
 .DS_Store
