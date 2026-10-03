@@ -198,7 +198,7 @@ document.addEventListener("click", e => {
   const fallbackPin = e.target.closest("[data-fallback-id]");
   if (fallbackPin) { if(window.PlayLink?.ready)window.PlayLink.openDetail(fallbackPin.dataset.fallbackId);else showFallbackEvent(Number(fallbackPin.dataset.fallbackId)); return; }
   if (e.target.id === "clearFilters") {
-    $("search").value = ""; $("sportFilter").value = ""; $("modeFilter").value = ""; render();
+    $("search").value = ""; $("sportFilter").value = ""; $("modeFilter").value = ""; if ($("urgentOnly")) $("urgentOnly").checked = false; render();
   }
   const close = e.target.closest("[data-close]");
   if (close) $(close.dataset.close).close();
