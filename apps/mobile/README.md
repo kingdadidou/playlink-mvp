@@ -52,3 +52,10 @@ Les comptes Apple/Google ne sont pas encore créés. Aucun achat, abonnement ou 
 ## Vérifications réalisées
 
 Les bundles JavaScript/Hermes Android et iOS s’exportent. Expo Doctor valide les 18 contrôles de configuration. Cela ne remplace pas la recette sur téléphone ni la validation des stores.
+
+Compilations natives réussies le 3 octobre 2026 :
+
+- [APK Android de test](https://expo.dev/accounts/fabienlebrun/projects/playlink/builds/1ab64e12-33de-4f3d-b903-210708f3d625)
+- [Application pour simulateur iOS](https://expo.dev/accounts/fabienlebrun/projects/playlink/builds/fa7a9a82-90d1-490d-9abd-9a014a983185)
+
+Les artefacts de test Expo ont une durée de conservation limitée ; les commandes ci-dessus permettent de les régénérer.
