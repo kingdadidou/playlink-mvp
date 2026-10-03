@@ -122,8 +122,9 @@
           <option value="">Choisir une ville</option>
           <option>Sceaux</option><option>Palaiseau</option><option>Massy</option><option>Antony</option><option>Paris</option><option>Versailles</option><option>Lyon</option><option>Marseille</option><option>Lille</option><option>Bordeaux</option><option>Toulouse</option><option>Nantes</option><option>Rennes</option><option>Strasbourg</option>
         </select>
-        <small class="field-hint">Le repère indique le centre de la ville. Précise le rendez-vous dans le champ Lieu.</small>
+        <small class="field-hint">La ville aide à te repérer. Choisis ensuite le lieu précis sur la carte.</small>
       </label>
+      <fieldset><legend>Point de rendez-vous</legend><p id="locationStatus" role="status">Touche la carte pour placer le point de rendez-vous.</p><div id="locationPicker" aria-label="Choisir le point de rendez-vous sur la carte"></div><details><summary>Saisir les coordonnées</summary><div class="two-cols"><label>Latitude<input name="lat" type="number" step="any" min="-90" max="90" placeholder="48.857"></label><label>Longitude<input name="lng" type="number" step="any" min="-180" max="180" placeholder="2.352"></label></div></details></fieldset>
       <div class="two-cols">
         <label>Niveau
           <select name="level">
@@ -173,6 +174,7 @@
   <script src="leaflet.js"></script>
   <script src="config.js"></script>
   <script src="app.js"></script>
+  <script src="location-picker.js"></script>
   <script src="community.js"></script>
 </body>
 </html>

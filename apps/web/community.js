@@ -149,6 +149,7 @@
   }
   function report(kind,id){$('utilityContent').innerHTML=`<h2>Signaler ${kind==='event'?'une session':'un utilisateur'}</h2><form id="reportForm"><input type="hidden" name="${kind==='event'?'event_id':'user_id'}" value="${esc(id)}"><label>Explique le problème<textarea name="reason" required minlength="5" maxlength="1000"></textarea></label><button class="primary">Transmettre à la modération</button></form>`;$('utilityDialog').showModal();}
   function prepareCreate(groupId){
+    window.PlayLinkLocation.open();
     const select=$('createForm').elements.group_id;
     select.innerHTML='<option value="">Choisir un groupe</option>'+snapshot.groups.filter(g=>snapshot.members.some(m=>m.group_id===g.id&&m.user_id===uid())).map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
     if(groupId){select.value=groupId;$('createForm').elements.visibility.value='group';}
@@ -161,8 +162,8 @@
   }
   async function createEvent(form){
     if(!uid()){openAuth();return false;}
-    const data=Object.fromEntries(form), coords=cityCoordinates[data.city];
-    if(!coords)throw new Error('Choisis une ville.');
+    const data=Object.fromEntries(form), coords=window.PlayLinkLocation.read();
+    if(!data.city)throw new Error('Choisis une ville.');
     const details=Object.fromEntries(Object.entries(data).filter(([k])=>k.startsWith('detail_')).map(([k,v])=>[k.slice(7),v]));
     const result=await act('create_event',{...data,starts_at:new Date(`${data.date}T${data.time}`).toISOString(),lat:coords[0],lng:coords[1],capacity:Number(data.maxParticipants),join_mode:data.joinMode,occurrences:Number(data.occurrences),details});
     if(result){$('createDialog').close();$('createForm').reset();showToast('Session publiée.');navigate('activities');activityTab='organizing';renderPanel();}return true;

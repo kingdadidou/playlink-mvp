@@ -43,5 +43,6 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .field-hint{display:block;margin-top:6px;font-weight:400;color:#6b7280}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:1000;max-width:min(560px,calc(100vw - 32px));padding:13px 18px;border-radius:12px;background:#111827;color:#fff;box-shadow:0 12px 35px #0003;text-align:center}
 dialog{max-height:calc(100vh - 32px);overflow:auto}
+#locationPicker{height:300px;width:100%;border-radius:8px;background:#e4e8dd;margin:12px 0}#locationStatus{font-size:13px;line-height:1.5}#locationPicker .leaflet-container{font:inherit}
 @media(max-width:900px){.filters{grid-template-columns:1fr 1fr}.filters>button{align-self:end}}
 @media(max-width:560px){main{padding:22px 4vw 48px}.hero{margin-bottom:20px}.hero h1{font-size:clamp(32px,9vw,40px);line-height:1.05}.lead{font-size:16px}.filters{grid-template-columns:1fr}.content-grid{gap:24px}#map{height:48vh;min-height:320px}.card-footer{align-items:flex-start;flex-direction:column}.card-actions{width:100%;justify-content:space-between}.card-actions .join{flex:1}.meta{grid-template-columns:1fr 1fr}.topbar{position:static}}
