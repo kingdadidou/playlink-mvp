@@ -1,6 +1,6 @@
 # PlayLink — Starter MVP
 
-> **Mise à jour communauté :** le site utilise désormais Supabase pour les comptes, amis, événements, groupes et discussions. Voir [la documentation actuelle](docs/community-release.md) pour les fonctionnalités, la configuration et les limites. Les descriptions de simulation ci-dessous concernent le prototype initial.
+> **Mise à jour communauté :** le site et l’application Android/iOS utilisent désormais Supabase pour les comptes, amis, événements, groupes et discussions. La création d’événements permet de placer le rendez-vous sur une carte. Voir [la documentation actuelle](docs/community-release.md) et [l’application mobile](apps/mobile/README.md). Les descriptions de simulation ci-dessous concernent le prototype initial.
 
 Premier dossier fonctionnel pour un site + une application permettant de créer et rejoindre des événements sportifs locaux.
 

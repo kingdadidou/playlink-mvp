@@ -14,7 +14,7 @@
   }
   function read(){
     const latitude=Number(lat.value),longitude=Number(lng.value);
-    if(!lat.value.trim()||!lng.value.trim()||!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180)throw new Error('Place le point de rendez-vous sur la carte.');
+    if(!lat.value.trim()||!lng.value.trim()||!Number.isFinite(latitude)||!Number.isFinite(longitude)||Math.abs(latitude)>90||Math.abs(longitude)>180){status.textContent='Place le point de rendez-vous sur la carte avant de publier.';status.scrollIntoView?.({block:'center',behavior:'smooth'});throw new Error('Place le point de rendez-vous sur la carte.');}
     return [latitude,longitude];
   }
   function open(){requestAnimationFrame(()=>{
