@@ -45,3 +45,14 @@ dialog{border-radius:14px;border-color:#ccd6c7;box-shadow:0 18px 70px #173e3230}
 #mapView .card-footer small{font-size:11px;line-height:1.4;flex:1;min-width:100px}
 #mapView .card-footer button{min-height:34px;padding:8px 10px;font-size:11px;white-space:nowrap}
 @media(max-width:760px){#mapView{grid-template-columns:1fr;gap:18px}#mapView .event-list{max-height:none;overflow:visible;padding-right:0}}
+
+#mapView .session-card{padding:0;overflow:hidden}
+.session-summary{display:flex;align-items:flex-start;gap:10px;width:100%;padding:11px 12px;border:0;background:transparent;text-align:left;color:var(--ink);cursor:pointer;border-radius:8px;font:inherit}
+.session-summary:hover{background:#edf1e7}.session-summary:focus-visible{outline:2px solid #739462;outline-offset:-3px}
+.session-icon{display:grid;place-items:center;width:29px;height:29px;background:#edf0e5;border-radius:8px;flex-shrink:0;margin-top:2px}.session-icon svg{width:21px;height:21px}
+.session-summary-text{display:flex;flex-direction:column;gap:3px;min-width:0;flex:1;font-size:11px;line-height:1.35;color:#657365}
+.session-summary-text strong{font-size:15px;line-height:1.2;color:var(--ink);overflow-wrap:anywhere}
+.session-sport{font-size:9px;letter-spacing:.025em}.session-places{font-size:10px}.session-chevron{font-size:19px;line-height:1;color:#739462;margin-top:2px}
+.session-details{padding:4px 13px 14px;border-top:1px solid var(--line)}
+.session-details h2{font-size:18px;margin:12px 0}.session-details .details-grid{grid-template-columns:1fr;gap:8px;margin:12px 0}.session-details .actions{gap:6px;margin:10px 0}.session-details .actions button{font-size:11px;padding:8px;min-height:34px}.session-details .member-row{font-size:12px;flex-wrap:wrap}.session-details .messages{max-height:220px}.session-details textarea{min-height:65px}.session-details form{padding:0}.session-details a{font-size:11px;overflow-wrap:anywhere}
+#mapView .session-details h3{font-size:14px;margin:15px 0 8px}

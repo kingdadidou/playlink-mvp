@@ -6,7 +6,7 @@
   let session = readSaved('playlink-session', null);
   let snapshot = {profiles:[],events:[],participations:[],friendships:[],groups:[],members:[],invitations:[],messages:[],reports:[],blocks:[],notifications:[]};
   let view = 'discover', activityTab = 'upcoming', detailId = null, busy = false;
-  let refreshPromise = null, editingId=null;
+  let refreshPromise = null, editingId=null, expandedId=null;
   const uid = () => session?.user?.id;
   const person = id => snapshot.profiles.find(p => p.id === id);
   const name = id => person(id)?.name || 'Sportif';
@@ -78,6 +78,7 @@
     return new Promise(resolve=>{dialog.addEventListener('close',()=>resolve(dialog.returnValue==='confirm'),{once:true});dialog.showModal();});
   }
   function navigate(next){
+    if(next!=='discover')expandedId=null;
     view=next;
     document.querySelectorAll('[data-view]').forEach(b=>{b.classList.toggle('active',b.dataset.view===view);b.setAttribute('aria-current',b.dataset.view===view?'page':'false');});
     const discover=view==='discover';
@@ -136,7 +137,8 @@
       panel.insertAdjacentHTML('beforeend',`<h3>Confirme ta présence pour demain</h3><div class="social-grid">${reminders.map(card).join('')||empty('Aucune présence à confirmer.')}</div><h3>Près de chez toi</h3><div class="social-grid">${nearby.map(card).join('')||empty(city?'Aucune session ne correspond à tes préférences.':'Renseigne une ville disponible dans « Mes alertes » pour retrouver les sessions proches.')}</div>`);
     }
   }
-  function renderDetail(id){
+  function renderDetail(id,target){
+    const $=key=>key==='eventContent'&&target?target:document.getElementById(key);
     detailId=id;
     const e=snapshot.events.find(e=>e.id===id);
     if(!e){$('eventContent').innerHTML=empty('Cette session n’est plus accessible.');return;}
@@ -145,7 +147,16 @@
     $('eventContent').innerHTML=`<p class="eyebrow">${esc(e.sport)} · ${esc({public:'Public',friends:'Amis uniquement',group:'Groupe'}[e.visibility])}</p><h2>${esc(e.title)}</h2><p>${esc(date(e.starts_at))}</p><p>${esc(e.location)} · ${esc(e.city)}</p><p>${esc(e.description)}</p><div class="details-grid">${Object.entries(e.details||{}).filter(([,v])=>v).map(([k,v])=>`<div><small>${esc(k)}</small><strong>${esc(v)}</strong></div>`).join('')}</div><p>${esc(e.level)} · ${accepted.length}/${e.capacity} participants${e.series_id?' · Session récurrente':''}</p><p class="status">${e.cancelled?'Session annulée':esc(labelStatus(p?.status))}</p><div class="actions">${future(e)&&!owner?(!p||['cancelled','rejected'].includes(p.status)?button(accepted.length>=e.capacity?'Rejoindre la liste d’attente':e.join_mode==='approval'?'Demander une place':'Rejoindre','join',`data-event="${id}"`,'primary'):button('Me désister','leave',`data-event="${id}"`)):''}${p?.status==='accepted'&&!p.confirmed&&future(e)?button('Confirmer ma présence','confirm',`data-event="${id}"`,'primary'):''}${owner&&future(e)?button('Modifier','edit_event',`data-id="${id}"`)+button('Inviter mes amis','invite_event',`data-id="${id}"`)+button('Annuler cette session','cancel_event',`data-event="${id}"`):''}${button('Signaler cette session','report_event',`data-id="${id}"`)}</div><h3>Participants</h3>${accepted.map(x=>`<div class="member-row"><span>${esc(name(x.user_id))}${x.confirmed?' · confirmé':''}${x.user_id===e.organizer_id?' · organisateur':''}</span>${owner&&x.user_id!==uid()&&future(e)?button('Retirer','remove_participant',`data-event="${id}" data-user="${x.user_id}"`):''}</div>`).join('')}${owner&&waiting.length?'<h3>Demandes & liste d’attente</h3>'+waiting.map(x=>`<div class="member-row"><span>${esc(name(x.user_id))} · ${esc(labelStatus(x.status))}</span><div>${button('Accepter','approve',`data-event="${id}" data-user="${x.user_id}"`)}${button('Refuser','reject',`data-event="${id}" data-user="${x.user_id}"`)}</div></div>`).join(''):''}<h3>Discussion de la session</h3>${p?.status==='accepted'?`<div class="messages">${snapshot.messages.filter(m=>m.event_id===id).map(m=>`<div class="message"><strong>${esc(name(m.author))}</strong><small>${esc(date(m.created_at))}</small><p>${esc(m.body)}</p></div>`).join('')||empty('Précise le rendez-vous ou le matériel à apporter.')}</div>${!e.cancelled?`<form id="messageForm"><label>Ton message<textarea name="body" required maxlength="2000" rows="2"></textarea></label><button class="primary">Envoyer</button></form>`:''}`:'<p>La discussion est accessible aux participants acceptés.</p>'}`;
     $('eventContent').insertAdjacentHTML('afterbegin',`<p><a target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat=${Number(e.lat)}&mlon=${Number(e.lng)}#map=17/${Number(e.lat)}/${Number(e.lng)}">Voir le point de rendez-vous ↗</a></p>`);
   }
-  function openDetail(id){if(!uid()){openAuth();return;}renderDetail(id);$('eventDialog').showModal();}
+  function openDetail(id){
+    if(view==='discover'&&document.querySelector(`#eventList [data-session="${id}"]`)){toggleSession(id);return;}
+    if(!uid()){openAuth();return;}renderDetail(id);$('eventDialog').showModal();
+  }
+  function toggleSession(id){
+    expandedId=expandedId===id?null:id;
+    const scroll=$('eventList').scrollTop;
+    render();$('eventList').scrollTop=scroll;
+    document.querySelector(`#eventList [data-session="${id}"] .session-summary`)?.focus({preventScroll:true});
+  }
   function openInvite(kind,id){
     $('utilityContent').innerHTML=`<h2>Inviter un ami</h2><form id="inviteForm"><input type="hidden" name="${kind}_id" value="${esc(id)}"><label>Ami<select name="user_id" required><option value="">Choisir un ami</option>${friends().map(f=>`<option value="${f}">${esc(name(f))}</option>`).join('')}</select></label><button class="primary">Envoyer l’invitation</button></form>`;$('utilityDialog').showModal();
   }
@@ -193,6 +204,7 @@
     try{
       if(a==='auth'){if(uid())navigate('profile');else openAuth();return;}
       if(a==='detail'){openDetail(b.dataset.id);return;}
+      if(a==='expand_session'){toggleSession(b.dataset.id);return;}
       if(a==='edit_event'){const e=snapshot.events.find(e=>e.id===b.dataset.id);if(!e)return;prepareCreate();editingId=e.id;const form=$('createForm');for(const [k,v] of Object.entries({title:e.title,sport:e.sport,location:e.location,city:e.city,lat:e.lat,lng:e.lng,level:e.level,maxParticipants:e.capacity,joinMode:e.join_mode,visibility:e.visibility,group_id:e.group_id||'',description:e.description})){if(form.elements[k])form.elements[k].value=v;}const d=new Date(e.starts_at);form.elements.date.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');form.elements.time.value=d.toTimeString().slice(0,5);sportsFields();Object.entries(e.details||{}).forEach(([k,v])=>{if(form.elements['detail_'+k])form.elements['detail_'+k].value=v;});$('eventDialog').close();$('createDialog').showModal();window.PlayLinkLocation.open();return;}
       if(a==='refresh'){await load();showToast('À jour.');return;}
       if(a==='logout'){await request('/auth/v1/logout',{method:'POST'});saveSession(null);await load();navigate('discover');return;}
@@ -234,6 +246,12 @@
   eventCard=e=>{
     if(!ready)return oldCard(e);
     const p=mine(e.id), left=e.maxParticipants-e.participants;
+    if(view==='discover'){
+      const expanded=expandedId===e.id;
+      let detail='';
+      if(expanded){const target=document.createElement('div');renderDetail(e.id,target);detail=target.innerHTML;}
+      return `<article class="card session-card${expanded?' expanded':''}" data-session="${esc(e.id)}" data-sport="${esc(e.sport)}"><button type="button" class="session-summary" data-action="expand_session" data-id="${esc(e.id)}" aria-expanded="${expanded}" aria-controls="session-${esc(e.id)}"><span class="session-icon">${window.PlayLinkSportIcon.svg(e.sport)}</span><span class="session-summary-text"><span class="session-sport">${esc(e.sport)} · ${esc(e.visibility==='friends'?'Entre amis':e.visibility==='group'?'Groupe':'Public')}</span><strong>${esc(e.title)}</strong><span>${esc(date(e.starts_at))} · ${esc(e.city)}</span><span class="session-places">${left>0?left+' place'+(left>1?'s':'')+' disponible'+(left>1?'s':''):'Complet · liste d’attente'}${p?' · '+esc(labelStatus(p.status)):''}</span></span><span class="session-chevron" aria-hidden="true">${expanded?'−':'+'}</span></button><div class="session-details" id="session-${esc(e.id)}" ${expanded?'':'hidden'}>${detail}</div></article>`;
+    }
     return `<article class="card" data-sport="${esc(e.sport)}"><div class="card-top"><span class="sport"><span class="sport-symbol">${window.PlayLinkSportIcon.svg(e.sport)}</span>${esc(e.sport)}</span><span class="mode">${esc(e.visibility==='friends'?'Entre amis':e.visibility==='group'?'En groupe':modeLabel(e.joinMode))}</span></div><h3>${esc(e.title)}</h3><p class="event-date">${esc(date(e.starts_at))} · ${esc(e.city)}</p><p class="muted">${esc(e.level)} · Avec ${esc(e.organizer)}</p>${left>0&&left<=2?`<p class="urgent-tag">Il manque ${left} joueur${left>1?'s':''} !</p>`:''}<div class="card-footer"><small>${left>0?left+' place'+(left>1?'s':'')+' disponible'+(left>1?'s':''):'Complet · liste d’attente ouverte'}${p?' · '+esc(labelStatus(p.status)):''}</small>${button('Voir la session','detail',`data-id="${esc(e.id)}"`,'primary')}</div></article>`;
   };
   window.PlayLink={createEvent,ready,openDetail,account:{request,saveSession,load,navigate}};
