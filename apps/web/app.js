@@ -82,7 +82,7 @@ function renderFallback(list){
     const x = Math.max(9, Math.min(88, 50 + (Number(event.lng) - centerLng) / lngSpan * 72));
     const y = Math.max(20, Math.min(78, 50 - (Number(event.lat) - centerLat) / latSpan * 55));
     const offset = index % 3 * 2;
-    return `<button type="button" class="fallback-pin" style="left:${x + offset}%;top:${y}%" data-fallback-id="${escapeHtml(event.id)}" aria-label="Voir ${escapeHtml(event.title)} à ${escapeHtml(event.city)}"><span class="fallback-dot">●</span><span class="fallback-city">${escapeHtml(event.city)}</span></button>`;
+    return `<button type="button" class="fallback-pin" style="left:${x + offset}%;top:${y}%" data-fallback-id="${escapeHtml(event.id)}" aria-label="Voir ${escapeHtml(event.title)} à ${escapeHtml(event.city)}"><span class="fallback-dot" style="background:${globalThis.PlayLinkSportIcon?.color(event.sport)||'#e95b32'}">${globalThis.PlayLinkSportIcon?.svg(event.sport)||'●'}</span><span class="fallback-city">${escapeHtml(event.city)}</span></button>`;
   }).join("");
 }
 
@@ -108,7 +108,7 @@ function eventCard(event){
   return `
   <article class="card" data-sport="${escapeHtml(event.sport)}" data-event-id="${Number(event.id)}">
     <div class="card-top">
-      <span class="sport">${escapeHtml(event.sport)}</span>
+      <span class="sport"><span class="sport-symbol" style="color:${globalThis.PlayLinkSportIcon?.color(event.sport)||'#173e32'}">${globalThis.PlayLinkSportIcon?.svg(event.sport)||''}</span>${escapeHtml(event.sport)}</span>
       <span class="mode">${modeLabel(event.joinMode)}</span>
     </div>
     <h3>${escapeHtml(event.title)}</h3>
@@ -151,7 +151,7 @@ function render(){
   markerById.clear();
   markers = list.filter(e => Number.isFinite(Number(e.lat)) && Number.isFinite(Number(e.lng))).map(e => {
     const marker = L.marker([Number(e.lat), Number(e.lng)], {
-      icon:L.divIcon({className:"event-pin", html:'<span aria-hidden="true">●</span>', iconSize:[34,34], iconAnchor:[17,17]})
+      icon:L.divIcon({className:"event-pin", html:`<span class="sport-map-pin" style="--sport-color:${globalThis.PlayLinkSportIcon?.color(e.sport)||'#e95b32'}">${globalThis.PlayLinkSportIcon?.svg(e.sport)||'●'}</span>`, iconSize:[44,50], iconAnchor:[22,48], popupAnchor:[0,-42]})
     }).addTo(map);
     marker.bindPopup(`<strong>${escapeHtml(e.title)}</strong><br>${escapeHtml(e.date)} · ${escapeHtml(e.time)}<br>${escapeHtml(e.location)}<br><em>${modeLabel(e.joinMode)}</em>${window.PlayLink?.ready ? `<br><button class="primary" data-action="detail" data-id="${escapeHtml(e.id)}">Ouvrir la session</button>` : ''}`);
     markerById.set(e.id, marker);

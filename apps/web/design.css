@@ -1,0 +1,26 @@
+/* Clear surfaces, compact navigation and shared sporting pictograms. */
+:root{--paper:#f4f3ec;--line:#dce2d8}
+.topbar{background:#fffef9;padding-top:16px;padding-bottom:16px}.brand strong{letter-spacing:-.8px}
+.primary,.ghost,.join{border-radius:9px;min-height:42px}.primary,.join{box-shadow:0 2px 3px #173e3210}.ghost{border-color:#c5d0c3;background:#fffef9}
+.community-nav{gap:7px;border:0;padding:5px;background:#e6ebe1;border-radius:12px;margin-bottom:28px;scrollbar-width:thin}
+.community-nav button{padding:11px 16px;border:0;border-radius:8px;color:#4d6254;font-size:13px}
+.community-nav button.active{background:#fffef9;color:var(--ink);box-shadow:0 1px 4px #173e3212}
+.hero{margin:12px 0 30px}.hero h1{font-size:clamp(38px,4.2vw,60px);letter-spacing:-2px}.lead{max-width:600px;font-size:16px}
+.stat-card{background:#e8eddf;border:0;border-radius:14px;padding:22px}.stat-card strong{font-size:55px}.stat-card:after{right:20px;top:35px;font-size:42px}
+.filters{background:#fffef9;border:1px solid var(--line);border-radius:13px;padding:18px 20px;gap:20px;box-shadow:0 3px 12px #173e3205}
+.filter-field input,.filter-field select{border-bottom-color:#d0d8cb}.urgent-filter{color:#61715e;font-size:12px}
+.map-wrap{border:1px solid #ccd6c7;border-radius:15px;overflow:hidden;background:#e6ebdf;box-shadow:0 4px 14px #173e3208}
+#map{border:0;border-radius:0;height:570px}.fallback-map{border:0;border-radius:0}.leaflet-tile-pane{filter:saturate(.6) contrast(.97)}
+.event-pin{display:block;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important}
+.sport-map-pin{display:grid;place-items:center;position:relative;width:42px;height:42px;border-radius:50%;background:var(--sport-color);color:#fff;border:3px solid #fff;box-shadow:0 3px 9px #173e3250}
+.sport-map-pin:after{content:'';position:absolute;bottom:-8px;left:13px;width:10px;height:10px;transform:rotate(45deg);background:var(--sport-color);border-right:2px solid #fff;border-bottom:2px solid #fff}
+.sport-map-pin svg{width:25px;height:25px}.sport-map-pin:hover{filter:brightness(1.12)}.event-pin span{top:0}.fallback-dot svg{width:23px;height:23px}
+.sport{display:flex;align-items:center;gap:8px;letter-spacing:.06em;color:#49613f}.sport:before{display:none}.sport-symbol{display:grid;place-items:center;width:33px;height:33px;border-radius:9px;background:#edf0e5;flex-shrink:0}.sport-symbol svg{width:23px;height:23px}
+.section-title{border:0;padding-bottom:15px}.section-title h2{font-size:24px}.event-list{gap:12px;max-height:520px;padding-right:6px}
+.card,.event-grid .card{background:#fffef9;border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:0 2px 7px #173e3204;margin-bottom:12px}
+.card:hover{background:#fffef9;border-color:#abbca5;box-shadow:0 4px 13px #173e320b}.card h3{font-size:21px;margin:15px 0 12px}.progress{height:4px;border-radius:4px}.progress>span{border-radius:4px;background:#739462}
+.mode{font-size:11px;max-width:145px;text-align:right}.card-footer{margin-top:14px}.locate{font-size:12px}.meta{line-height:1.6}
+.social-card{background:#fffef9;border-radius:12px;border-color:var(--line);padding:23px}.profile-form{max-width:760px}.profile-form fieldset{background:#fffef9;border-color:var(--line);border-radius:12px;padding:20px;margin:20px 0}.profile-form legend{font-size:14px;padding:0 7px}.profile-form input,.profile-form select,.profile-form textarea{border-radius:8px;min-height:43px}.profile-form textarea{min-height:115px}.avatar-large{width:92px;height:92px}.profile-sport-entry{padding:18px 0}.profile-sport-row label{font-size:15px}.sport-specific-fields{gap:0 20px}
+dialog{border-radius:14px;border-color:#ccd6c7;box-shadow:0 18px 70px #173e3230}.empty-state{border-radius:12px;padding:35px 22px;background:#eef1e6}.leaflet-popup-content-wrapper{border-radius:12px;color:var(--ink)}.leaflet-popup-content{font-size:13px;line-height:1.7}.leaflet-popup-content strong{font-size:15px}
+@media(max-width:950px){#map{height:390px}.event-list{max-height:none}.stat-card{padding:18px}.filters{gap:16px}.hero h1{font-size:46px}}
+@media(max-width:560px){.topbar{padding:14px 6vw}.community-nav{margin-bottom:22px;gap:3px}.community-nav button{padding:10px 12px;font-size:12px}.hero h1{font-size:41px;letter-spacing:-1.5px}.lead{font-size:14px}.filters{padding:15px;gap:14px}.map-wrap{border-radius:12px}#map{height:330px}.card{padding:18px}.card h3{font-size:20px}.card-actions{width:100%;justify-content:space-between}.card-footer{gap:10px}.profile-form fieldset{padding:16px}.social-card{padding:18px}.profile-sport-row label{font-size:14px}}
