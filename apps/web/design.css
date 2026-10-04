@@ -26,3 +26,22 @@ dialog{border-radius:14px;border-color:#ccd6c7;box-shadow:0 18px 70px #173e3230}
 @media(max-width:560px){.topbar{padding:14px 6vw}.community-nav{margin-bottom:22px;gap:3px}.community-nav button{padding:10px 12px;font-size:12px}.hero h1{font-size:41px;letter-spacing:-1.5px}.lead{font-size:14px}.filters{padding:15px;gap:14px}.map-wrap{border-radius:12px}#map{height:330px}.card{padding:18px}.card h3{font-size:20px}.card-actions{width:100%;justify-content:space-between}.card-footer{gap:10px}.profile-form fieldset{padding:16px}.social-card{padding:18px}.profile-sport-row label{font-size:14px}}
 
 .address-search{position:relative}.address-suggestions{border:1px solid #c5d0c3;border-radius:9px;background:#fffef9;box-shadow:0 5px 18px #173e3215;max-height:240px;overflow:auto;margin-top:-5px}.address-suggestions button{display:block;width:100%;border:0;border-bottom:1px solid #edf0e8;padding:13px 14px;background:transparent;color:var(--ink);text-align:left;font-size:14px;line-height:1.4}.address-suggestions button:hover,.address-suggestions button[aria-selected=true]{background:#e7eddf}.address-search .field-hint{line-height:1.5;margin:8px 0 12px}.location-choice-pin{display:grid;place-items:center;background:#e95b32;color:#fff;border:3px solid #fff;border-radius:50%;box-shadow:0 3px 8px #173e3240}
+
+/* Discovery: a wide map and a compact column of sessions. */
+#mapView{grid-template-columns:minmax(0,1fr) minmax(280px,340px);gap:22px;align-items:start}
+#mapView>aside{min-width:0}
+#mapView .map-wrap{position:relative;top:0}
+#mapView .section-title{padding-bottom:12px;gap:8px}
+#mapView .section-title h2{font-size:20px}
+#mapView .event-list{display:flex;flex-direction:column;gap:10px;max-height:520px;overflow-y:auto;padding-right:5px}
+#mapView .card{padding:13px 14px;margin:0;border-radius:9px;flex-shrink:0}
+#mapView .card h3{font-size:17px;line-height:1.25;margin:9px 0 7px;overflow-wrap:anywhere}
+#mapView .sport{font-size:9px;letter-spacing:.05em;gap:6px}
+#mapView .sport-symbol{width:26px;height:26px;border-radius:7px}
+#mapView .sport-symbol svg{width:19px;height:19px}
+#mapView .mode{font-size:10px;max-width:115px}
+#mapView .card p{font-size:12px;line-height:1.45;margin:5px 0}
+#mapView .card-footer{margin-top:9px;gap:8px;flex-direction:row;align-items:center}
+#mapView .card-footer small{font-size:11px;line-height:1.4;flex:1;min-width:100px}
+#mapView .card-footer button{min-height:34px;padding:8px 10px;font-size:11px;white-space:nowrap}
+@media(max-width:760px){#mapView{grid-template-columns:1fr;gap:18px}#mapView .event-list{max-height:none;overflow:visible;padding-right:0}}
