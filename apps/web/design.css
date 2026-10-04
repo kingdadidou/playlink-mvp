@@ -5,7 +5,7 @@
 .community-nav{gap:7px;border:0;padding:5px;background:#e6ebe1;border-radius:12px;margin-bottom:28px;scrollbar-width:thin}
 .community-nav button{padding:11px 16px;border:0;border-radius:8px;color:#4d6254;font-size:13px}
 .community-nav button.active{background:#fffef9;color:var(--ink);box-shadow:0 1px 4px #173e3212}
-.hero{margin:12px 0 30px}.hero h1{font-size:clamp(38px,4.2vw,60px);letter-spacing:-2px}.lead{max-width:600px;font-size:16px}
+.hero{margin:12px 0 30px;grid-template-columns:1fr}.hero h1{font-size:clamp(38px,4.2vw,60px);letter-spacing:-2px}.lead{max-width:600px;font-size:16px}
 .stat-card{background:#e8eddf;border:0;border-radius:14px;padding:22px}.stat-card strong{font-size:55px}.stat-card:after{right:20px;top:35px;font-size:42px}
 .filters{background:#fffef9;border:1px solid var(--line);border-radius:13px;padding:18px 20px;gap:20px;box-shadow:0 3px 12px #173e3205}
 .filter-field input,.filter-field select{border-bottom-color:#d0d8cb}.urgent-filter{color:#61715e;font-size:12px}

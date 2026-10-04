@@ -83,9 +83,8 @@
     const discover=view==='discover';
     document.querySelector('.hero').hidden=!discover;
     document.querySelector('.filters').hidden=!discover;
-    if(discover) setView('map'); else {$('mapView').classList.add('hidden');$('listView').classList.add('hidden');}
+    if(discover) setView(); else $('mapView').classList.add('hidden');
     $('communityPanel').hidden=discover;
-    $('toggleView').hidden=!discover;
     renderPanel();
   }
   function card(e){

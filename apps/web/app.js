@@ -140,11 +140,9 @@ function filteredEvents(){
 
 function render(){
   const list = filteredEvents();
-  $("eventCount").textContent = events.length;
   $("resultCount").textContent = `${list.length} résultat${list.length > 1 ? "s" : ""}`;
   const content = list.length ? list.map(eventCard).join("") : '<div class="empty-state"><strong>Aucun événement trouvé</strong><p>Essaie un autre sport ou une autre ville.</p><button type="button" class="ghost" id="clearFilters">Effacer les filtres</button></div>';
   $("eventList").innerHTML = content;
-  $("eventGrid").innerHTML = content;
   renderFallback(list);
   if (!map) return;
   markers.forEach(marker => map.removeLayer(marker));
@@ -206,15 +204,10 @@ document.addEventListener("click", e => {
 
 ["search","sportFilter","modeFilter"].forEach(id => $(id).addEventListener("input", render));
 
-function setView(view){
-  const list = view === "list";
-  $("mapView").classList.toggle("hidden", list);
-  $("listView").classList.toggle("hidden", !list);
-  $("toggleView").textContent = list ? "Vue carte" : "Vue liste";
-  $("toggleView").setAttribute("aria-pressed", String(list));
-  if (!list && map) requestAnimationFrame(() => map.invalidateSize());
+function setView(){
+  $("mapView").classList.remove("hidden");
+  if (map) requestAnimationFrame(() => map.invalidateSize());
 }
-$("toggleView").addEventListener("click", () => setView($("mapView").classList.contains("hidden") ? "map" : "list"));
 
 $("openCreate").addEventListener("click", () => $("createDialog").showModal());
 $("notifyBtn").addEventListener("click", () => $("notifyDialog").showModal());
