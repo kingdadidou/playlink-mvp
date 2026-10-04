@@ -154,7 +154,8 @@
   function toggleSession(id){
     expandedId=expandedId===id?null:id;
     const scroll=$('eventList').scrollTop;
-    render();$('eventList').scrollTop=scroll;
+    $('eventList').innerHTML=filteredEvents().map(eventCard).join('');
+    $('eventList').scrollTop=scroll;
     document.querySelector(`#eventList [data-session="${id}"] .session-summary`)?.focus({preventScroll:true});
   }
   function openInvite(kind,id){
