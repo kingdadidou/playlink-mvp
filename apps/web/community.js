@@ -99,7 +99,7 @@
     else if(friendship?.receiver===uid())actions=button('Accepter','friend_accept',`data-user="${p.id}"`,'primary')+button('Refuser','friend_decline',`data-user="${p.id}"`);
     else if(friendship)actions=button('Annuler la demande','friend_remove',`data-user="${p.id}"`);
     else actions=button('Ajouter en ami','friend_request',`data-user="${p.id}"`,'primary');
-    return `<article class="social-card"><div class="person-heading"><span class="avatar">${esc(p.name.slice(0,1).toUpperCase())}</span><div><h3>${esc(p.name)}</h3><span>${esc(p.city)}</span></div></div><p>${esc(Object.entries(p.sports||{}).map(([s,l])=>s+' : '+l).join(' · '))}</p><p>${esc(p.availability)}</p><p>${esc(p.bio)}</p><div class="actions">${actions}${button('Signaler','report_user',`data-user="${p.id}"`)}${button('Bloquer','block',`data-user="${p.id}"`)}</div></article>`;
+    return `<article class="social-card"><div class="person-heading">${window.PlayLinkProfile.avatar(p)}<div><h3>${esc(p.name)}</h3><span>${esc(p.city)}</span></div></div><p>${esc(Object.entries(p.sports||{}).map(([s,l])=>s+' : '+l).join(' · '))}</p><p>${esc(p.availability)}</p><p>${esc(p.bio)}</p><div class="actions">${actions}${button('Signaler','report_user',`data-user="${p.id}"`)}${button('Bloquer','block',`data-user="${p.id}"`)}</div></article>`;
   }
   function renderPanel(){
     if(view==='discover')return;
@@ -116,6 +116,7 @@
     }else if(view==='profile'){
       const p=person(uid())||{name:'',city:'',sports:{},availability:'',bio:''};
       panel.innerHTML=`<h2>Mon profil sportif</h2><form id="profileForm" class="profile-form"><div class="two-cols"><label>Prénom ou pseudo<input name="name" value="${esc(p.name)}" required minlength="2" maxlength="60"></label><label>Ville<input name="city" value="${esc(p.city)}" maxlength="100"></label></div><fieldset><legend>Sports et niveaux</legend>${['Running','Football','Tennis','Basket','Autre'].map(s=>`<label>${s}<input name="sport_${s}" value="${esc(p.sports?.[s]||'')}" placeholder="${s==='Running'?'Ex. 5:30 min/km sur 10 km':s==='Tennis'?'Ex. loisir ou classement':'Ton niveau (laisser vide si non pratiqué)'}" maxlength="100"></label>`).join('')}</fieldset><label>Disponibilités habituelles<input name="availability" value="${esc(p.availability)}" placeholder="Ex. mardi soir et dimanche matin" maxlength="500"></label><label>Quelques mots sur toi<textarea name="bio" maxlength="1000">${esc(p.bio)}</textarea></label><button class="primary">Enregistrer mon profil</button></form>${button('Se déconnecter','logout')}`;
+      window.PlayLinkProfile.mount(document.getElementById('profileForm'),p);
     }else if(view==='notifications'){
       const invites=snapshot.invitations.filter(i=>i.receiver===uid()&&i.status==='pending');
       panel.innerHTML=`<div class="panel-heading"><h2>Invitations & nouvelles</h2>${button('Tout marquer comme lu','read_notifications')}</div>${invites.map(i=>`<article class="social-card"><h3>${esc(name(i.sender))} t’invite</h3><p>${esc(i.event_id?snapshot.events.find(e=>e.id===i.event_id)?.title||'Une session':snapshot.groups.find(g=>g.id===i.group_id)?.name||'Un groupe')}</p>${button('Accepter','invite_accept',`data-id="${i.id}"`,'primary')}${button('Décliner','invite_decline',`data-id="${i.id}"`)}</article>`).join('')}${snapshot.notifications.map(n=>`<article class="social-card"><p>${esc(n.body)}</p><small>${esc(date(n.created_at))}</small>${n.event_id?button('Voir la session','detail',`data-id="${n.event_id}"`):''}</article>`).join('')||(!invites.length?empty('Tu es à jour. Tes invitations et changements de participation apparaîtront ici.'):'')}`;
@@ -199,7 +200,7 @@
         const result=await request(signup?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email:values.email,password:values.password,...(signup?{data:{name:values.name},gotrue_meta_security:{}}:{})})},false);
         if(result.access_token){saveSession(result);$('authDialog').close();await load();navigate('profile');showToast('Bienvenue sur PlayLink.');}
         else $('authFeedback').textContent='Vérifie tes e-mails pour confirmer ton compte, puis connecte-toi ici.';
-      }else if(id==='profileForm'){const sports=Object.fromEntries(Object.entries(values).filter(([k,v])=>k.startsWith('sport_')&&v.trim()).map(([k,v])=>[k.slice(6),v]));await act('profile',{...values,sports});showToast('Profil enregistré.');}
+      }else if(id==='profileForm'){const profile=ev.target.readProfile();await request('/rest/v1/rpc/save_profile',{method:'POST',body:JSON.stringify({data:{name:values.name,city:values.city,availability:values.availability,bio:values.bio,...profile}})});await load();showToast('Profil enregistré.');}
       else if(id==='messageForm'){await act('message',{event_id:detailId,body:values.body});showToast('Message envoyé.');}
       else{const action={inviteForm:'invite',reportForm:'report',groupForm:'group_create'}[id];const result=await act(action,values);if(result){$('utilityDialog').close();showToast('Enregistré.');}}
     }catch(error){if(id==='authForm')$('authFeedback').textContent=error.message;else showToast(error.message);}
