@@ -8,7 +8,7 @@
     lat.value=Number(latitude).toFixed(6); lng.value=Number(longitude).toFixed(6);
     status.textContent='Point choisi. Tu peux déplacer le repère pour ajuster le rendez-vous.';
     if(picker){
-      if(!marker){marker=L.marker([latitude,longitude],{draggable:true,icon:L.divIcon({className:'event-pin',html:'<span aria-hidden="true">●</span>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(picker);marker.on('dragend',()=>{const p=marker.getLatLng();point(p.lat,p.lng);});}
+      if(!marker){marker=L.marker([latitude,longitude],{draggable:true,icon:L.divIcon({className:'location-choice-pin',html:'<span aria-hidden="true">●</span>',iconSize:[34,34],iconAnchor:[17,17]})}).addTo(picker);marker.on('dragend',()=>{const p=marker.getLatLng();point(p.lat,p.lng);});}
       else marker.setLatLng([latitude,longitude]);
     }
   }
@@ -32,5 +32,7 @@
   form.elements.city.addEventListener('change',()=>{const p=cityCoordinates[form.elements.city.value];if(p&&picker)picker.setView(p,13);});
   [lat,lng].forEach(input=>input.addEventListener('change',()=>{try{const p=read();point(...p);if(picker)picker.setView(p,16);}catch{status.textContent='Renseigne une latitude et une longitude valides.';}}));
   form.addEventListener('reset',()=>{if(marker){marker.remove();marker=null;}status.textContent='Touche la carte pour placer le point de rendez-vous.';});
-  window.PlayLinkLocation={open,read};
+  function clear(){lat.value='';lng.value='';if(marker){marker.remove();marker=null;}status.textContent='Choisis une adresse ou place le point sur la carte.';}
+  function choose(latitude,longitude){point(latitude,longitude);if(picker)picker.setView([latitude,longitude],16);}
+  window.PlayLinkLocation={open,read,choose,clear};
 })();
