@@ -6,7 +6,7 @@
   let session = readSaved('playlink-session', null);
   let snapshot = {profiles:[],events:[],participations:[],friendships:[],groups:[],members:[],invitations:[],messages:[],reports:[],blocks:[],notifications:[]};
   let view = 'discover', activityTab = 'upcoming', detailId = null, busy = false;
-  let refreshPromise = null;
+  let refreshPromise = null, editingId=null;
   const uid = () => session?.user?.id;
   const person = id => snapshot.profiles.find(p => p.id === id);
   const name = id => person(id)?.name || 'Sportif';
@@ -117,6 +117,7 @@
       const p=person(uid())||{name:'',city:'',sports:{},availability:'',bio:''};
       panel.innerHTML=`<h2>Mon profil sportif</h2><form id="profileForm" class="profile-form"><div class="two-cols"><label>Prénom ou pseudo<input name="name" value="${esc(p.name)}" required minlength="2" maxlength="60"></label><label>Ville<input name="city" value="${esc(p.city)}" maxlength="100"></label></div><fieldset><legend>Sports et niveaux</legend>${['Running','Football','Tennis','Basket','Autre'].map(s=>`<label>${s}<input name="sport_${s}" value="${esc(p.sports?.[s]||'')}" placeholder="${s==='Running'?'Ex. 5:30 min/km sur 10 km':s==='Tennis'?'Ex. loisir ou classement':'Ton niveau (laisser vide si non pratiqué)'}" maxlength="100"></label>`).join('')}</fieldset><label>Quelques mots sur toi<textarea name="bio" maxlength="1000">${esc(p.bio)}</textarea></label><button class="primary">Enregistrer mon profil</button></form>${button('Se déconnecter','logout')}`;
       window.PlayLinkProfile.mount(document.getElementById('profileForm'),p);
+      panel.insertAdjacentHTML('beforeend','<div class="actions"><a href="privacy.html">Confidentialité</a><a href="terms.html">Conditions d’utilisation</a><button type="button" class="ghost" data-account="delete">Supprimer mon compte</button></div>');
     }else if(view==='notifications'){
       const invites=snapshot.invitations.filter(i=>i.receiver===uid()&&i.status==='pending');
       panel.innerHTML=`<div class="panel-heading"><h2>Invitations & nouvelles</h2>${button('Tout marquer comme lu','read_notifications')}</div>${invites.map(i=>`<article class="social-card"><h3>${esc(name(i.sender))} t’invite</h3><p>${esc(i.event_id?snapshot.events.find(e=>e.id===i.event_id)?.title||'Une session':snapshot.groups.find(g=>g.id===i.group_id)?.name||'Un groupe')}</p>${button('Accepter','invite_accept',`data-id="${i.id}"`,'primary')}${button('Décliner','invite_decline',`data-id="${i.id}"`)}</article>`).join('')}${snapshot.notifications.map(n=>`<article class="social-card"><p>${esc(n.body)}</p><small>${esc(date(n.created_at))}</small>${n.event_id?button('Voir la session','detail',`data-id="${n.event_id}"`):''}</article>`).join('')||(!invites.length?empty('Tu es à jour. Tes invitations et changements de participation apparaîtront ici.'):'')}`;
@@ -142,7 +143,7 @@
     if(!e){$('eventContent').innerHTML=empty('Cette session n’est plus accessible.');return;}
     const p=mine(id), owner=e.organizer_id===uid(), accepted=snapshot.participations.filter(x=>x.event_id===id&&x.status==='accepted');
     const waiting=snapshot.participations.filter(x=>x.event_id===id&&['pending','waitlisted'].includes(x.status));
-    $('eventContent').innerHTML=`<p class="eyebrow">${esc(e.sport)} · ${esc({public:'Public',friends:'Amis uniquement',group:'Groupe'}[e.visibility])}</p><h2>${esc(e.title)}</h2><p>${esc(date(e.starts_at))}</p><p>${esc(e.location)} · ${esc(e.city)}</p><p>${esc(e.description)}</p><div class="details-grid">${Object.entries(e.details||{}).filter(([,v])=>v).map(([k,v])=>`<div><small>${esc(k)}</small><strong>${esc(v)}</strong></div>`).join('')}</div><p>${esc(e.level)} · ${accepted.length}/${e.capacity} participants${e.series_id?' · Session récurrente':''}</p><p class="status">${e.cancelled?'Session annulée':esc(labelStatus(p?.status))}</p><div class="actions">${future(e)&&!owner?(!p||['cancelled','rejected'].includes(p.status)?button(accepted.length>=e.capacity?'Rejoindre la liste d’attente':e.join_mode==='approval'?'Demander une place':'Rejoindre','join',`data-event="${id}"`,'primary'):button('Me désister','leave',`data-event="${id}"`)):''}${p?.status==='accepted'&&!p.confirmed&&future(e)?button('Confirmer ma présence','confirm',`data-event="${id}"`,'primary'):''}${owner&&future(e)?button('Inviter mes amis','invite_event',`data-id="${id}"`)+button('Annuler cette session','cancel_event',`data-event="${id}"`):''}${button('Signaler cette session','report_event',`data-id="${id}"`)}</div><h3>Participants</h3>${accepted.map(x=>`<div class="member-row"><span>${esc(name(x.user_id))}${x.confirmed?' · confirmé':''}${x.user_id===e.organizer_id?' · organisateur':''}</span>${owner&&x.user_id!==uid()&&future(e)?button('Retirer','remove_participant',`data-event="${id}" data-user="${x.user_id}"`):''}</div>`).join('')}${owner&&waiting.length?'<h3>Demandes & liste d’attente</h3>'+waiting.map(x=>`<div class="member-row"><span>${esc(name(x.user_id))} · ${esc(labelStatus(x.status))}</span><div>${button('Accepter','approve',`data-event="${id}" data-user="${x.user_id}"`)}${button('Refuser','reject',`data-event="${id}" data-user="${x.user_id}"`)}</div></div>`).join(''):''}<h3>Discussion de la session</h3>${p?.status==='accepted'?`<div class="messages">${snapshot.messages.filter(m=>m.event_id===id).map(m=>`<div class="message"><strong>${esc(name(m.author))}</strong><small>${esc(date(m.created_at))}</small><p>${esc(m.body)}</p></div>`).join('')||empty('Précise le rendez-vous ou le matériel à apporter.')}</div>${!e.cancelled?`<form id="messageForm"><label>Ton message<textarea name="body" required maxlength="2000" rows="2"></textarea></label><button class="primary">Envoyer</button></form>`:''}`:'<p>La discussion est accessible aux participants acceptés.</p>'}`;
+    $('eventContent').innerHTML=`<p class="eyebrow">${esc(e.sport)} · ${esc({public:'Public',friends:'Amis uniquement',group:'Groupe'}[e.visibility])}</p><h2>${esc(e.title)}</h2><p>${esc(date(e.starts_at))}</p><p>${esc(e.location)} · ${esc(e.city)}</p><p>${esc(e.description)}</p><div class="details-grid">${Object.entries(e.details||{}).filter(([,v])=>v).map(([k,v])=>`<div><small>${esc(k)}</small><strong>${esc(v)}</strong></div>`).join('')}</div><p>${esc(e.level)} · ${accepted.length}/${e.capacity} participants${e.series_id?' · Session récurrente':''}</p><p class="status">${e.cancelled?'Session annulée':esc(labelStatus(p?.status))}</p><div class="actions">${future(e)&&!owner?(!p||['cancelled','rejected'].includes(p.status)?button(accepted.length>=e.capacity?'Rejoindre la liste d’attente':e.join_mode==='approval'?'Demander une place':'Rejoindre','join',`data-event="${id}"`,'primary'):button('Me désister','leave',`data-event="${id}"`)):''}${p?.status==='accepted'&&!p.confirmed&&future(e)?button('Confirmer ma présence','confirm',`data-event="${id}"`,'primary'):''}${owner&&future(e)?button('Modifier','edit_event',`data-id="${id}"`)+button('Inviter mes amis','invite_event',`data-id="${id}"`)+button('Annuler cette session','cancel_event',`data-event="${id}"`):''}${button('Signaler cette session','report_event',`data-id="${id}"`)}</div><h3>Participants</h3>${accepted.map(x=>`<div class="member-row"><span>${esc(name(x.user_id))}${x.confirmed?' · confirmé':''}${x.user_id===e.organizer_id?' · organisateur':''}</span>${owner&&x.user_id!==uid()&&future(e)?button('Retirer','remove_participant',`data-event="${id}" data-user="${x.user_id}"`):''}</div>`).join('')}${owner&&waiting.length?'<h3>Demandes & liste d’attente</h3>'+waiting.map(x=>`<div class="member-row"><span>${esc(name(x.user_id))} · ${esc(labelStatus(x.status))}</span><div>${button('Accepter','approve',`data-event="${id}" data-user="${x.user_id}"`)}${button('Refuser','reject',`data-event="${id}" data-user="${x.user_id}"`)}</div></div>`).join(''):''}<h3>Discussion de la session</h3>${p?.status==='accepted'?`<div class="messages">${snapshot.messages.filter(m=>m.event_id===id).map(m=>`<div class="message"><strong>${esc(name(m.author))}</strong><small>${esc(date(m.created_at))}</small><p>${esc(m.body)}</p></div>`).join('')||empty('Précise le rendez-vous ou le matériel à apporter.')}</div>${!e.cancelled?`<form id="messageForm"><label>Ton message<textarea name="body" required maxlength="2000" rows="2"></textarea></label><button class="primary">Envoyer</button></form>`:''}`:'<p>La discussion est accessible aux participants acceptés.</p>'}`;
     $('eventContent').insertAdjacentHTML('afterbegin',`<p><a target="_blank" rel="noopener noreferrer" href="https://www.openstreetmap.org/?mlat=${Number(e.lat)}&mlon=${Number(e.lng)}#map=17/${Number(e.lat)}/${Number(e.lng)}">Voir le point de rendez-vous ↗</a></p>`);
   }
   function openDetail(id){if(!uid()){openAuth();return;}renderDetail(id);$('eventDialog').showModal();}
@@ -151,6 +152,11 @@
   }
   function report(kind,id){$('utilityContent').innerHTML=`<h2>Signaler ${kind==='event'?'une session':'un utilisateur'}</h2><form id="reportForm"><input type="hidden" name="${kind==='event'?'event_id':'user_id'}" value="${esc(id)}"><label>Explique le problème<textarea name="reason" required minlength="5" maxlength="1000"></textarea></label><button class="primary">Transmettre à la modération</button></form>`;$('utilityDialog').showModal();}
   function prepareCreate(groupId){
+    editingId=null;
+    const form=$('createForm');
+    for(const name of ['sport','level','joinMode','visibility','group_id','occurrences'])if(form.elements[name])form.elements[name].disabled=false;
+    $('createDialog').querySelector('h2').textContent='Créer un événement';
+    form.querySelector('[type="submit"]').textContent='Publier l’événement';
     window.PlayLinkLocation.open();
     const select=$('createForm').elements.group_id;
     select.innerHTML='<option value="">Choisir un groupe</option>'+snapshot.groups.filter(g=>snapshot.members.some(m=>m.group_id===g.id&&m.user_id===uid())).map(g=>`<option value="${g.id}">${esc(g.name)}</option>`).join('');
@@ -161,14 +167,24 @@
     const sport=$('createForm').elements.sport.value;
     const fields=sport==='Running'?[['Distance','Ex. 10 km'],['Allure','Ex. 5:30 min/km']]:sport==='Tennis'?[['Surface','Ex. terre battue'],['Format','Simple ou double']]:sport==='Football'?[['Format','Ex. five 5 contre 5'],['Terrain','Intérieur ou extérieur']]:[['Format','Ex. match amical']];
     $('sportDetails').innerHTML=fields.map(([n,h])=>`<label>${n}<input name="detail_${n}" placeholder="${h}" maxlength="100"></label>`).join('')+'<label>Matériel à prévoir<input name="detail_Matériel" placeholder="Ex. ballon, eau, chaussures" maxlength="200"></label>';
+    if(editingId){
+      const form=$('createForm');
+      for(const name of ['sport','level','joinMode','visibility','group_id','occurrences'])if(form.elements[name])form.elements[name].disabled=true;
+      $('sportDetails').querySelectorAll('input').forEach(input=>input.disabled=true);
+      $('createDialog').querySelector('h2').textContent='Modifier le rendez-vous';
+      form.querySelector('[type="submit"]').textContent='Enregistrer les modifications';
+    }
   }
   async function createEvent(form){
     if(!uid()){openAuth();return false;}
     const data=Object.fromEntries(form), coords=window.PlayLinkLocation.read();
     if(!data.city)throw new Error('Choisis une ville.');
     const details=Object.fromEntries(Object.entries(data).filter(([k])=>k.startsWith('detail_')).map(([k,v])=>[k.slice(7),v]));
-    const result=await act('create_event',{...data,starts_at:new Date(`${data.date}T${data.time}`).toISOString(),lat:coords[0],lng:coords[1],capacity:Number(data.maxParticipants),join_mode:data.joinMode,occurrences:Number(data.occurrences),details});
-    if(result){$('createDialog').close();$('createForm').reset();showToast('Session publiée.');navigate('activities');activityTab='organizing';renderPanel();}return true;
+    const action=editingId?'edit_event':'create_event';
+    const payload={...data,starts_at:new Date(`${data.date}T${data.time}`).toISOString(),lat:coords[0],lng:coords[1],capacity:Number(data.maxParticipants),join_mode:data.joinMode,occurrences:Number(data.occurrences),details};
+    const result=editingId?await request('/rest/v1/rpc/edit_event',{method:'POST',body:JSON.stringify({data:{...payload,event_id:editingId}})}):await act('create_event',payload);
+    if(editingId){editingId=null;await load();}
+    if(result){$('createDialog').close();$('createForm').reset();showToast(action==='edit_event'?'Session modifiée. Les participants ont été prévenus.':'Session publiée.');navigate('activities');activityTab='organizing';renderPanel();}return true;
   }
   document.addEventListener('click',async ev=>{
     const tab=ev.target.closest('[data-view]');if(tab){navigate(tab.dataset.view);return;}
@@ -178,6 +194,7 @@
     try{
       if(a==='auth'){if(uid())navigate('profile');else openAuth();return;}
       if(a==='detail'){openDetail(b.dataset.id);return;}
+      if(a==='edit_event'){const e=snapshot.events.find(e=>e.id===b.dataset.id);if(!e)return;prepareCreate();editingId=e.id;const form=$('createForm');for(const [k,v] of Object.entries({title:e.title,sport:e.sport,location:e.location,city:e.city,lat:e.lat,lng:e.lng,level:e.level,maxParticipants:e.capacity,joinMode:e.join_mode,visibility:e.visibility,group_id:e.group_id||'',description:e.description})){if(form.elements[k])form.elements[k].value=v;}const d=new Date(e.starts_at);form.elements.date.value=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');form.elements.time.value=d.toTimeString().slice(0,5);sportsFields();Object.entries(e.details||{}).forEach(([k,v])=>{if(form.elements['detail_'+k])form.elements['detail_'+k].value=v;});$('eventDialog').close();$('createDialog').showModal();window.PlayLinkLocation.open();return;}
       if(a==='refresh'){await load();showToast('À jour.');return;}
       if(a==='logout'){await request('/auth/v1/logout',{method:'POST'});saveSession(null);await load();navigate('discover');return;}
       if(!uid()){openAuth();return;}
@@ -218,9 +235,9 @@
   eventCard=e=>{
     if(!ready)return oldCard(e);
     const p=mine(e.id), left=e.maxParticipants-e.participants;
-    return `<article class="card" data-sport="${esc(e.sport)}"><div class="card-top"><span class="sport">${esc(e.sport)}</span><span class="mode">${esc(e.visibility==='friends'?'Entre amis':e.visibility==='group'?'En groupe':modeLabel(e.joinMode))}</span></div><h3>${esc(e.title)}</h3><p class="event-date">${esc(date(e.starts_at))} · ${esc(e.city)}</p><p class="muted">${esc(e.level)} · Avec ${esc(e.organizer)}</p>${left>0&&left<=2?`<p class="urgent-tag">Il manque ${left} joueur${left>1?'s':''} !</p>`:''}<div class="card-footer"><small>${left>0?left+' place'+(left>1?'s':'')+' disponible'+(left>1?'s':''):'Complet · liste d’attente ouverte'}${p?' · '+esc(labelStatus(p.status)):''}</small>${button('Voir la session','detail',`data-id="${esc(e.id)}"`,'primary')}</div></article>`;
+    return `<article class="card" data-sport="${esc(e.sport)}"><div class="card-top"><span class="sport"><span class="sport-symbol">${window.PlayLinkSportIcon.svg(e.sport)}</span>${esc(e.sport)}</span><span class="mode">${esc(e.visibility==='friends'?'Entre amis':e.visibility==='group'?'En groupe':modeLabel(e.joinMode))}</span></div><h3>${esc(e.title)}</h3><p class="event-date">${esc(date(e.starts_at))} · ${esc(e.city)}</p><p class="muted">${esc(e.level)} · Avec ${esc(e.organizer)}</p>${left>0&&left<=2?`<p class="urgent-tag">Il manque ${left} joueur${left>1?'s':''} !</p>`:''}<div class="card-footer"><small>${left>0?left+' place'+(left>1?'s':'')+' disponible'+(left>1?'s':''):'Complet · liste d’attente ouverte'}${p?' · '+esc(labelStatus(p.status)):''}</small>${button('Voir la session','detail',`data-id="${esc(e.id)}"`,'primary')}</div></article>`;
   };
-  window.PlayLink={createEvent,ready,openDetail};
+  window.PlayLink={createEvent,ready,openDetail,account:{request,saveSession,load,navigate}};
   renderAccount();
   if(ready){events=[];render();load().catch(error=>{$('connectionNotice').textContent='Connexion à PlayLink indisponible : '+error.message;showToast(error.message);});}
   setInterval(()=>{if(ready&&uid()&&!document.hidden&&!busy&&!['TEXTAREA','INPUT','SELECT'].includes(document.activeElement?.tagName))load().catch(()=>{});},30000);

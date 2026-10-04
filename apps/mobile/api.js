@@ -23,10 +23,14 @@ async function request(path,body,authorized=true,method){
   }catch(error){if(error.name==='AbortError')throw new Error('Connexion trop lente. Vérifie ton réseau.');throw error;}finally{clearTimeout(timeout);}
 }
 export async function authenticate(email,password,name,signup){const data=await request(signup?'/auth/v1/signup':'/auth/v1/token?grant_type=password',{email:email.trim(),password,...(signup?{data:{name}}:{})},false);if(data.access_token)await save(data);return !!data.access_token;}
-export async function logout(){try{await request('/auth/v1/logout',{},true);}finally{await save(null);}}
+export async function logout(){try{await request('/auth/v1/logout',{},true);}catch{}finally{await save(null);}}
 export async function load(){
   if(session)return request('/rest/v1/rpc/snapshot',{});
   const [events,participations]=await Promise.all([request('/rest/v1/events?select=*&cancelled=eq.false&order=starts_at',null,false),request('/rest/v1/participations?select=event_id,status',null,false)]);
   return {events,participations,profiles:[],friendships:[],groups:[],members:[],invitations:[],messages:[],reports:[],blocks:[],notifications:[]};
 }
 export async function action(action,data={}){if(!session)throw new Error('Connecte-toi pour continuer.');return request('/rest/v1/rpc/playlink_action',{action,data});}
+export async function rpc(name,body){if(!session)throw new Error('Connecte-toi pour continuer.');return request('/rest/v1/rpc/'+name,body);}
+export const saveProfile=data=>rpc('save_profile',{data});
+export const recover=email=>request('/auth/v1/recover?redirect_to='+encodeURIComponent('https://playlink-mvp.vercel.app/'),{email:email.trim()},false);
+export async function deleteAccount(){await rpc('delete_my_account',{confirmation:'SUPPRIMER'});await save(null);}

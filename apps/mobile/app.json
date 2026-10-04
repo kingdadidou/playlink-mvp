@@ -32,6 +32,8 @@
     },
     "plugins": [
       "expo-secure-store",
+      "expo-notifications",
+      ["expo-image-picker", {"photosPermission":"Choisis une photo pour ton profil PlayLink.","cameraPermission":false,"microphonePermission":false}],
       "@react-native-community/datetimepicker"
     ],
     "extra": {
