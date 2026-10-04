@@ -99,7 +99,7 @@
     else if(friendship?.receiver===uid())actions=button('Accepter','friend_accept',`data-user="${p.id}"`,'primary')+button('Refuser','friend_decline',`data-user="${p.id}"`);
     else if(friendship)actions=button('Annuler la demande','friend_remove',`data-user="${p.id}"`);
     else actions=button('Ajouter en ami','friend_request',`data-user="${p.id}"`,'primary');
-    return `<article class="social-card"><div class="person-heading">${window.PlayLinkProfile.avatar(p)}<div><h3>${esc(p.name)}</h3><span>${esc(p.city)}</span></div></div><p>${esc(Object.entries(p.sports||{}).map(([s,l])=>s+' : '+l).join(' · '))}</p><p>${esc(p.availability)}</p><p>${esc(p.bio)}</p><div class="actions">${actions}${button('Signaler','report_user',`data-user="${p.id}"`)}${button('Bloquer','block',`data-user="${p.id}"`)}</div></article>`;
+    return `<article class="social-card"><div class="person-heading">${window.PlayLinkProfile.avatar(p)}<div><h3>${esc(p.name)}</h3><span>${esc(p.city)}</span></div></div><p>${esc(window.PlayLinkProfile.summary(p))}</p><p>${esc(p.availability)}</p><p>${esc(p.bio)}</p><div class="actions">${actions}${button('Signaler','report_user',`data-user="${p.id}"`)}${button('Bloquer','block',`data-user="${p.id}"`)}</div></article>`;
   }
   function renderPanel(){
     if(view==='discover')return;
@@ -206,7 +206,7 @@
     }catch(error){if(id==='authForm')$('authFeedback').textContent=error.message;else showToast(error.message);}
     finally{if(submit)submit.disabled=false;}
   });
-  document.addEventListener('input',ev=>{if(ev.target.id==='peopleSearch'){const q=ev.target.value.toLocaleLowerCase();$('peopleResults').innerHTML=snapshot.profiles.filter(p=>p.id!==uid()&&JSON.stringify([p.name,p.city,p.sports]).toLocaleLowerCase().includes(q)).map(profileCard).join('')||empty('Aucun joueur trouvé.');}});
+  document.addEventListener('input',ev=>{if(ev.target.id==='peopleSearch'){const q=ev.target.value.toLocaleLowerCase();$('peopleResults').innerHTML=snapshot.profiles.filter(p=>p.id!==uid()&&JSON.stringify([p.name,p.city,p.sports,p.sport_details]).toLocaleLowerCase().includes(q)).map(profileCard).join('')||empty('Aucun joueur trouvé.');}});
   $('createForm').elements.sport.addEventListener('change',sportsFields);
   $('openCreate').addEventListener('click',()=>{prepareCreate();if(!uid()){$('createDialog').close();openAuth();}});
   $('accountButton').addEventListener('click',()=>uid()?navigate('profile'):openAuth());
