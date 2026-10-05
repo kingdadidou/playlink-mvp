@@ -11,7 +11,7 @@
   'Running':[runner,'#b75339'],'Athlétisme':[runner,'#b75339'],'Trail':[runner,'#b75339'],
   'Volley-ball':[volley,'#477d8b'],'Beach-volley':[volley,'#477d8b'],
   'Boxe':['<path d="M8 17 5 12V7c0-3 8-4 11-1l1 5 3 2-2 5H8Zm0 0v4h9v-3M7 9h6m-6 3h5"/>','#9c4b52'],
-  'Street workout':['<path d="M3 4h18M6 4v5l6 3 6-3V4m-6 8v5l-4 5m4-5 4 5"/><circle cx="12" cy="8" r="2"/>','#57608a'],
+  'Street workout':['<path d="M2 7h20M2 4v16M22 4v16"/><g fill="currentColor" stroke="none"><circle cx="12" cy="4" r="2.2"/><path d="M9 8h6l1.5 3 1-4h2l-1.2 7.5-3.2-2L14 20l-2 2-2-2-1.1-7.5-3.2 2L4.5 7h2l1 4L9 8Z"/></g><path d="M9.8 12h4.4M12 15v4" stroke="var(--sport-color, #57608a)" stroke-width="1"/>','#57608a'],
   'Musculation':['<path d="M7 12h10M3 8v8m4-10v12m10-12v12m4-10v8M3 12h4m10 0h4"/>','#57608a'],
   'Cyclisme':['<circle cx="6" cy="16" r="4"/><circle cx="18" cy="16" r="4"/><path d="m6 16 5-9 7 9H6l-2-9m4 0h5m1-4h3l1 13"/>','#387d79'],
   'Danse':['<rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="7" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="4"/><circle cx="12" cy="15" r="1" fill="currentColor" stroke="none"/>','#a3567c'],
