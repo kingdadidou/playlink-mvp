@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /mobile-map.html
+
+Sitemap: https://playlink-mvp.vercel.app/sitemap.xml
