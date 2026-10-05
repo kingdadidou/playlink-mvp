@@ -59,7 +59,7 @@
       const [es,ps]=await Promise.all([request('/rest/v1/events?select=*&cancelled=eq.false&order=starts_at',{},false),request('/rest/v1/participations?select=event_id,status',{},false)]);
       snapshot.events=es;snapshot.participations=ps;
     }
-    syncEvents(); renderPanel(); renderAccount();
+    syncEvents(); renderPanel(); renderAccount();window.PlayLinkGroups?.render(snapshot,uid());
     if(detailId && $('eventDialog').open) renderDetail(detailId);
   }
   function renderAccount(){
@@ -86,7 +86,7 @@
     document.querySelector('.filters').hidden=!discover;
     if(discover) setView(); else $('mapView').classList.add('hidden');
     $('communityPanel').hidden=discover;
-    renderPanel();
+    renderPanel();window.PlayLinkGroups?.render(snapshot,uid());
   }
   function card(e){
     const p=mine(e.id), count=snapshot.participations.filter(x=>x.event_id===e.id&&x.status==='accepted').length;
