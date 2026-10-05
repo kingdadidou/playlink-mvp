@@ -13,3 +13,8 @@ create policy group_messages_read on public.group_messages for select to authent
  using(public.in_group(group_id,auth.uid()));
 create policy group_messages_send on public.group_messages for insert to authenticated
  with check(author=auth.uid() and public.in_group(group_id,auth.uid()));
+do $$ begin
+ if not exists(select 1 from pg_publication_tables where pubname='supabase_realtime' and schemaname='public' and tablename='group_messages') then
+  alter publication supabase_realtime add table public.group_messages;
+ end if;
+end $$;
