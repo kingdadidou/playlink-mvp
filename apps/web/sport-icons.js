@@ -4,7 +4,7 @@
  const runner='<g fill="currentColor" stroke="none"><circle cx="18.4" cy="4" r="2.4"/><path d="M7.5 2.8C11 .9 13.5 1.6 16.7 4.3l3.1 2.6c1.6 1.4 2.3 2 3.2-2.2.5 4.6-1 7.1-3.2 6.3-1.4-.5-2.5-1.6-3.4-2.5C11.8 14.1 6.8 18.4 1 22.4c6.4-5.8 11.4-10.5 12.8-14.3 1.1-3-1.5-4.7-6.3-5.3Zm7.1 8.8c5.4 5.9 1 8.5-6.5 8.8 5.6-1.8 9-3.4 4.2-6.7l2.3-2.1Z"/></g>';
  const racket='<g transform="rotate(35 12 12)"><ellipse cx="12" cy="8" rx="5" ry="6"/><path d="M10 13.5 11 17h2l1-3.5M11 17v5h2v-5M10 3v10m4-10v10M7.3 6h9.4M7.3 10h9.4" stroke-width="1.3"/></g>';
  const volley='<circle cx="12" cy="12" r="8"/><path d="M12 4c-2 3-2 6 0 8m0 0c4 0 6 2 7 4m-7-4c-2 3-4 5-7 5m7-10c3 0 6 2 7 5M6 8c-1 4 0 7 3 10m5 1c2-1 3-3 3-5"/>';
- const runningShoe='<path d="M3 8h4l2 3 4-4 2 5 4 2c2 1 3 2 3 4v2H3a1 1 0 0 1-1-1v-8l1-3Z"/><path d="M2 17h20M9 11l3 1m-1-3 3 1M3 8l2 5h3"/><path d="M3 4h5M1 6h3" stroke-width="1.3"/>';
+ const runningShoe='<g fill="currentColor" stroke="none"><path d="M3 3c2-.6 4-.6 6-.3l4 6c1-.1 2 .6 2.5 1.2 2.2.6 2.7 2.1 1.6 4.1L12 21c-.6.8-2 1-3.8 1-2.6 0-4.3-.5-4.3-1.7-.1-1.6 1-2.4 2.8-2.5l1.3-.6.3-5c-1-.3-1.1-1.4-.5-1.9L3 3Z"/><path d="m17 11 6 .4-6 .4Zm-.8 3 7.8.4-8.3.4Zm-2.1 3 8.9.4-9.5.4Zm-2.2 4 10.1.4-11 .4Z"/></g>';
  const icons={
   'Football':[ball,'#35634a'],'Five':[ball,'#35634a'],
   'Basket':['<circle cx="12" cy="12" r="8"/><path d="M4 12h16M12 4v16M6 6c7 1 11 5 12 12M6 18C7 11 11 7 18 6"/>','#c15c30'],
