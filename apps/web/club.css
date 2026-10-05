@@ -1,0 +1,35 @@
+/* Sporting club identity: condensed display type, sage and citrus. */
+@font-face{font-family:Club;src:url('anton.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+:root{--ink:#244e40;--paper:#fff;--line:#dce6de;--orange:#697f3b;--sage:#6c9e86;--citrus:#e1f38b}
+body{background:var(--paper);color:var(--ink)}
+main{max-width:1500px;margin:auto;padding-top:20px}
+.topbar{background:#fff;border-bottom:1px dashed var(--line);padding-top:18px;padding-bottom:18px}
+.brand strong{font-family:Club,Impact,sans-serif;text-transform:uppercase;font-weight:400;font-size:30px;letter-spacing:0}
+.brand span{color:#567663}.logo{background:var(--sage);border-radius:3px;font-family:Club,Impact,sans-serif;font-style:normal;font-size:31px}.logo span{display:none}
+.primary,.join{background:var(--ink);color:#fff;box-shadow:none;border-radius:3px}.ghost{background:#fff;border-color:var(--line);border-radius:3px}
+.topbar #openCreate{background:var(--citrus);color:var(--ink)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #47785f;outline-offset:3px}
+.community-nav{background:none;border-radius:0;border-bottom:1px dashed var(--line);padding:0 0 14px;margin-bottom:18px;gap:8px}
+.community-nav button{font-family:Club,Impact,sans-serif;text-transform:uppercase;font-size:17px;letter-spacing:.3px;font-weight:400;background:transparent;border-radius:2px;color:#587c68;padding:10px 14px}
+.community-nav button.active{background:var(--citrus);color:var(--ink);box-shadow:none}
+.hero{margin:30px 0 28px;border-bottom:1px dashed var(--line);padding-bottom:26px}
+.hero>div{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:0 36px;align-items:end}
+.hero .eyebrow{grid-column:1/-1;font-size:10px;letter-spacing:.16em;color:#587c68;margin:0 0 14px}
+.hero h1{font-family:Club,Impact,sans-serif;font-size:clamp(76px,10vw,150px);font-weight:400;line-height:.96;letter-spacing:-.025em;margin:0;max-width:none;color:var(--sage)}
+.hero h1 em{font-family:inherit;font-style:normal;color:inherit;background:radial-gradient(ellipse at 62% 45%,#ddec86 0 16%,transparent 16.5%),repeating-linear-gradient(145deg,transparent 0 39px,#adc4a7 40px 41px,transparent 42px 79px),linear-gradient(120deg,#67977e,#7eae91);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero .lead{font-size:14px;line-height:1.8;color:#536d5d;margin:0 0 5px;max-width:290px}.hero .desktop-break{display:none}
+.filters{background:#f5f8f2;border:0;border-radius:3px;box-shadow:none;padding:16px 20px}
+.filter-field>span{font-family:Club,Impact,sans-serif;font-size:14px;letter-spacing:.04em;font-weight:400;color:#52765e}.filter-field input,.filter-field select{background:transparent;border-bottom-color:#cbd8ca}
+.filters .ghost{background:var(--citrus);color:var(--ink);border:0}
+.map-wrap{border-radius:3px;border-color:var(--line);box-shadow:none}.leaflet-tile-pane{filter:saturate(.65)}
+.section-title h2,.panel-heading h2,.dialog-head h2,.social-card h3,#communityPanel>h2{font-family:Club,Impact,sans-serif;text-transform:uppercase;font-weight:400;letter-spacing:.02em;color:#56876d}
+#mapView .section-title h2{font-size:25px}#mapView .section-title{border-bottom:1px dashed var(--line);margin-bottom:12px}
+#mapView .session-card{background:#f5f8f2;border:1px solid #e4ebe1;border-radius:3px;box-shadow:none}#mapView .session-card:hover{border-color:#8dab8f}
+.session-summary{border-radius:2px}.session-summary:hover{background:#edf4e5}.session-summary-text strong{font-size:15px;font-weight:650}.session-icon,.sport-symbol{background:#e6eedb;border-radius:3px}.session-chevron{color:#60886b}
+.session-details{background:#fff}.session-details h2{font-family:Club,Impact,sans-serif;font-weight:400;color:#56876d}.session-details .actions button{border-radius:2px}
+.social-card,.profile-form fieldset{background:#f5f8f2;border:1px solid var(--line);border-radius:3px;box-shadow:none}.profile-form legend{font-family:Club,Impact,sans-serif;font-size:18px;font-weight:400;color:#56876d}
+dialog{background:#fff;border-radius:4px;border:1px solid var(--line)}dialog::backdrop{background:#244e406b}label input,label select,label textarea{border-radius:3px;background:#fff;border-color:#cbd8ca}
+.empty-state{background:#f5f8f2;border-radius:3px}.subtabs button.active{background:var(--citrus);color:var(--ink)}.site-footer{border-top:1px dashed var(--line);color:#536d5d;margin-top:36px;padding-top:22px}
+@media(max-width:1000px){.hero>div{grid-template-columns:minmax(0,1fr) 230px;gap:0 22px}.hero h1{font-size:clamp(70px,10vw,105px)}.hero .lead{font-size:13px}}
+@media(max-width:760px){.hero>div{display:block}.hero h1{font-size:clamp(65px,14vw,105px)}.hero .lead{max-width:440px;margin-top:20px}.hero{margin:22px 0;padding-bottom:24px}.community-nav button{font-size:15px;padding:9px 12px}.topbar{padding-top:14px;padding-bottom:14px}.filters{padding:16px}.brand strong{font-size:27px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
