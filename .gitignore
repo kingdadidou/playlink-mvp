@@ -6,5 +6,6 @@ node_modules/
 .env.*
 apps/mobile/dist/
 apps/mobile/dist-beta/
+apps/mobile/dist-check/
 .vercel/
 .DS_Store

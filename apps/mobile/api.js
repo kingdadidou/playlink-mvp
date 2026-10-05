@@ -34,3 +34,18 @@ export async function rpc(name,body){if(!session)throw new Error('Connecte-toi p
 export const saveProfile=data=>rpc('save_profile',{data});
 export const recover=email=>request('/auth/v1/recover?redirect_to='+encodeURIComponent('https://playlink-mvp.vercel.app/'),{email:email.trim()},false);
 export async function deleteAccount(){await rpc('delete_my_account',{confirmation:'SUPPRIMER'});await save(null);}
+export const chatMessages=(kind,id)=>request('/rest/v1/'+(kind==='group'?'group_messages':'messages')+'?select=*&'+(kind==='group'?'group_id':'event_id')+'=eq.'+encodeURIComponent(id)+'&order=created_at.desc&limit=100');
+export const sendChat=(kind,id,body)=>kind==='group'?request('/rest/v1/group_messages',{group_id:id,author:currentUser().id,body}):action('message',{event_id:id,body});
+export function subscribeChat(kind,id,onChange,onStatus){
+  let socket,heartbeat,retry,stopped=false;
+  const connect=()=>{
+    if(stopped||!session)return;
+    const topic='realtime:mobile-'+kind+'-'+id;
+    onStatus('Connexion…');
+    socket=new WebSocket(URL.replace(/^http/,'ws')+'/realtime/v1/websocket?apikey='+encodeURIComponent(KEY)+'&vsn=1.0.0');
+    socket.onopen=()=>{socket.send(JSON.stringify({topic,event:'phx_join',ref:'1',payload:{access_token:session.access_token,config:{broadcast:{self:false},presence:{key:''},postgres_changes:[{event:'INSERT',schema:'public',table:kind==='group'?'group_messages':'messages',filter:(kind==='group'?'group_id':'event_id')+'=eq.'+id}]}}}));heartbeat=setInterval(()=>{if(socket.readyState===1)socket.send(JSON.stringify({topic:'phoenix',event:'heartbeat',payload:{},ref:String(Date.now())}));},25000);};
+    socket.onmessage=e=>{try{const m=JSON.parse(e.data);if(m.event==='postgres_changes')onChange();if(m.event==='phx_reply'&&m.ref==='1'){onStatus(m.payload.status==='ok'?'Chat en direct':'Reconnexion…');if(m.payload.status!=='ok')socket.close();}}catch{}};
+    socket.onclose=()=>{clearInterval(heartbeat);if(!stopped){onStatus('Reconnexion…');retry=setTimeout(async()=>{try{await onChange();}finally{connect();}},3000);}};
+  };
+  connect();return()=>{stopped=true;clearInterval(heartbeat);clearTimeout(retry);if(socket){socket.onclose=null;socket.close();}};
+}
