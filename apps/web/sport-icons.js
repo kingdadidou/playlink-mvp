@@ -15,9 +15,9 @@
   'Musculation':['<path d="M7 12h10M3 8v8m4-10v12m10-12v12m4-10v8M3 12h4m10 0h4"/>','#57608a'],
   'Cyclisme':['<circle cx="6" cy="16" r="4"/><circle cx="18" cy="16" r="4"/><path d="m6 16 5-9 7 9H6l-2-9m4 0h5m1-4h3l1 13"/>','#387d79'],
   'Danse':['<rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="7" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="4"/><circle cx="12" cy="15" r="1" fill="currentColor" stroke="none"/>','#a3567c'],
-  'Sports de skatepark':['<path d="M2 10q1 4 5 4h10q4 0 5-4M4 10h16M7 14v2m10-2v2"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>','#8a6344'],
+  'Sports de skatepark':['<path d="M2 9q1 4 5 4h10q4 0 5-4"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>','#8a6344'],
   'Rugby':['<ellipse cx="12" cy="12" rx="5" ry="10" transform="rotate(45 12 12)"/><path d="m8 16 8-8m-7 4 3 3m0-6 3 3"/>','#80644b'],
-  'Escalade':['<circle cx="13" cy="4" r="2"/><path d="m3 2 2 6-2 6 2 8m1-12 6-3 6 3 3-3m-9 0 1 7-5 6m5-6 5 2 2 6"/>','#8a6344'],
+  'Escalade':['<path d="m2 20 10-16 10 16H2Zm6-10 2 2 2-2 2 2 2-2"/>','#8a6344'],
   'Natation':['<path d="M2 20q3-3 6 0t6 0 6 0M2 16q3-3 6 0t6 0 6 0m-17-5 7-5 5 5-5 3"/><circle cx="18" cy="10" r="2"/>','#477d8b'],
   'Autre':['<path d="m12 3 2.5 5 5.5 1-4 4 1 6-5-3-5 3 1-6-4-4 5.5-1L12 3Z"/>','#627066']
  };
