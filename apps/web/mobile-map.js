@@ -1,6 +1,8 @@
 (() => {
   const map=L.map('map').setView([48.857,2.352],12), layer=L.layerGroup().addTo(map);
   let mode='explore',selected;
+  let exploreViewportEstablished=false;
+  map.on('zoomstart dragstart',()=>{if(mode==='explore')exploreViewportEstablished=true;});
   const message=document.getElementById('message');
   const send=data=>window.ReactNativeWebView?.postMessage(JSON.stringify(data));
   const icon=L.divIcon({className:'pin',iconSize:[18,18],iconAnchor:[9,9]});
@@ -21,7 +23,7 @@
     }else{
       const points=[];
       for(const e of data.events||[]){if(!Number.isFinite(e.lat)||!Number.isFinite(e.lng))continue;const sportIcon=L.divIcon({className:'pin',html:window.PlayLinkSportIcon.svg(e.sport),iconSize:[34,34],iconAnchor:[17,17]});const m=L.marker([e.lat,e.lng],{icon:sportIcon}).addTo(layer);m.on('click',()=>send({type:'event',id:e.id}));points.push([e.lat,e.lng]);}
-      if(points.length)map.fitBounds(points,{padding:[30,30],maxZoom:15});
+      if(points.length&&!exploreViewportEstablished){exploreViewportEstablished=true;map.fitBounds(points,{padding:[30,30],maxZoom:15});}
       message.textContent=points.length?'Touche un repère pour ouvrir la session.':'Aucune session à afficher.';
     }
     map.invalidateSize();

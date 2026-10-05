@@ -29,6 +29,7 @@ const joinedIds = new Set(readSaved("playlink-joined", []));
 const pendingIds = new Set(readSaved("playlink-pending", []));
 let map = null;
 let mapReady = false;
+let mapViewportEstablished = false;
 let markers = [];
 let markerById = new Map();
 const $ = (id) => document.getElementById(id);
@@ -47,6 +48,7 @@ function initMap(){
   }
   try {
     map = L.map("map", {scrollWheelZoom:false}).setView([48.74, 2.27], 11);
+    map.on('zoomstart dragstart', () => { mapViewportEstablished = true; });
     const tiles = L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom:19, attribution:"&copy; OpenStreetMap"
     }).addTo(map);
@@ -155,7 +157,12 @@ function render(){
     markerById.set(e.id, marker);
     return marker;
   });
-  if (markers.length) map.fitBounds(L.featureGroup(markers).getBounds().pad(0.35), {maxZoom:12});
+  // Frame the first loaded events only; refreshes and filters preserve the chosen view.
+  const waitingForCommunity = window.PLAYLINK_CONFIG?.url && window.PLAYLINK_CONFIG?.key && !window.PlayLink?.ready;
+  if (markers.length && !mapViewportEstablished && !waitingForCommunity) {
+    mapViewportEstablished = true;
+    map.fitBounds(L.featureGroup(markers).getBounds().pad(0.35), {maxZoom:12});
+  }
 }
 
 function joinEvent(id){
