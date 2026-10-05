@@ -16,7 +16,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .hero>div{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:0 36px;align-items:end}
 .hero .eyebrow{grid-column:1/-1;font-size:10px;letter-spacing:.16em;color:#587c68;margin:0 0 14px}
 .hero h1{font-family:Club,Impact,sans-serif;font-size:clamp(76px,10vw,150px);font-weight:400;line-height:.96;letter-spacing:-.025em;margin:0;max-width:none;color:var(--sage)}
-.hero h1 em{font-family:inherit;font-style:normal;color:inherit;background:radial-gradient(ellipse at 62% 45%,#ddec86 0 16%,transparent 16.5%),repeating-linear-gradient(145deg,transparent 0 39px,#adc4a7 40px 41px,transparent 42px 79px),linear-gradient(120deg,#67977e,#7eae91);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero h1 em{font-family:inherit;font-style:normal;color:var(--citrus);background:none;-webkit-text-fill-color:var(--citrus)}
 .hero .lead{font-size:14px;line-height:1.8;color:#536d5d;margin:0 0 5px;max-width:290px}.hero .desktop-break{display:none}
 .filters{background:#f5f8f2;border:0;border-radius:3px;box-shadow:none;padding:16px 20px}
 .filter-field>span{font-family:Club,Impact,sans-serif;font-size:14px;letter-spacing:.04em;font-weight:400;color:#52765e}.filter-field input,.filter-field select{background:transparent;border-bottom-color:#cbd8ca}
