@@ -1,7 +1,13 @@
 {
   "cli": {"version": ">= 16.0.0", "appVersionSource": "remote"},
   "build": {
-    "preview": {"distribution": "internal", "android": {"buildType": "apk"}},
+    "preview": {
+      "distribution": "internal",
+      "android": {"buildType": "apk", "image": "sdk-54"},
+      "env": {
+        "GRADLE_OPTS": "-Dorg.gradle.jvmargs=\"-Xmx2g -XX:MaxMetaspaceSize=768m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8\" -Dorg.gradle.parallel=false -Dorg.gradle.workers.max=2 -Dorg.gradle.daemon=false"
+      }
+    },
     "simulator": {"extends": "preview", "ios": {"simulator": true}},
     "production": {"autoIncrement": true}
   },
